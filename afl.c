@@ -178,20 +178,19 @@ void compile_program(Instruction program[], int length, const char *name) {
                 fprintf(com, "  cmove rcx, rdx\n");
                 fprintf(com, "  push rcx\n");
                 break;
-            case OP_IF:
+            case OP_IF: // Semi worky
                 fprintf(com, "  ;; -- if --\n");
                 fprintf(com, "  pop rax\n");
                 fprintf(com, "  cmp rax, 0\n");
                 fprintf(com, "  jne _end_%d\n", ip++);
                 if_stack[sp++] = ip;
                 break;
-            case OP_ELSE:
+            case OP_ELSE: // No worky
                 fprintf(com, "  ;; -- else --\n");
                 fprintf(com, "  je _else_%d\n", ip++);
                 fprintf(com, "_else_%d:\n", ip++);
-
                 break;
-            case OP_END:
+            case OP_END: // No worky
                 fprintf(com, "  ;; -- end --\n");
                 fprintf(com, "_end_%d:\n", ip++);
                 break;
