@@ -2,7 +2,7 @@ CC=gcc
 CCFLAGS=-Wall -Wextra -Wno-format-truncation -Wno-sign-compare -fPIE
 IN=afl.c
 OUT=afl
-XTR=main
+XTR=test
 
 fresh:
 	touch $(IN)
@@ -18,7 +18,7 @@ caio:
 	make all
 	make compile
 	clear
-	./build/main
+	./build/$(XTR)
 iaio:
 	make all
 	make inter
