@@ -12,7 +12,9 @@ enum {
     OP_MODULUS,
     OP_DUMP,
     OP_EQUAL,
-    COUNT_OPS
+    OP_IF,
+    OP_ELSE,
+    OP_END,
 };
 
 typedef struct {
@@ -45,6 +47,21 @@ Instruction equal() {
     return inst;
 }
 
+Instruction iff() {
+    Instruction inst = {OP_IF, 0};
+    return inst;
+}
+
+Instruction elze() {
+    Instruction inst = {OP_ELSE, 0};
+    return inst;
+}
+
+Instruction end() {
+    Instruction inst = {OP_END, 0};
+    return inst;
+}
+
 Instruction minus() {
     Instruction inst = {OP_MINUS, 0};
     return inst;
@@ -74,10 +91,48 @@ void compile_program(Instruction program[], int length, const char *name) {
     fprintf(com, "  newline db 0xA\n");
 
     fprintf(com, "section .text\n");
+    fprintf(com, "printNum:\n");
+    fprintf(com, "  mov rcx, digitSpace\n");
+    fprintf(com, "  mov rbx, 10\n");
+    fprintf(com, "  mov [rcx], rbx\n");
+    fprintf(com, "  inc rcx\n");
+    fprintf(com, "  mov [digitSpacePos], rcx\n");
+
+    fprintf(com, "printNumLoop:\n");
+    fprintf(com, "  mov rdx, 0\n");
+    fprintf(com, "  mov rbx, 10\n");
+    fprintf(com, "  div rbx\n");
+    fprintf(com, "  push rax\n");
+    fprintf(com, "  add rdx, 48\n");
+    fprintf(com, "  mov rcx, [digitSpacePos]\n");
+    fprintf(com, "  mov [rcx], dl\n");
+    fprintf(com, "  inc rcx\n");
+    fprintf(com, "  mov [digitSpacePos], rcx\n");
+    fprintf(com, "  pop rax\n");
+    fprintf(com, "  cmp rax, 0\n");
+    fprintf(com, "  jne printNumLoop\n");
+
+    fprintf(com, "printNumLoop2:\n");
+    fprintf(com, "  mov rcx, [digitSpacePos]\n");
+    fprintf(com, "  mov rax, 1\n");
+    fprintf(com, "  mov rdi, 1\n");
+    fprintf(com, "  mov rsi, rcx\n");
+    fprintf(com, "  mov rdx, 1\n");
+    fprintf(com, "  syscall\n");
+    fprintf(com, "  mov rcx, [digitSpacePos]\n");
+    fprintf(com, "  dec rcx\n");
+    fprintf(com, "  mov [digitSpacePos], rcx\n");
+    fprintf(com, "  cmp rcx, digitSpace\n");
+    fprintf(com, "  jge printNumLoop2\n");
+    fprintf(com, "  ret\n");
     fprintf(com, "global _start\n");
     fprintf(com, "_start:\n");
-    for (int i = 0; i < length; i++) {
-        Instruction inst = program[i];
+
+    int if_stack[MAX_SIZE];
+    int sp = 0; 
+
+    for (int ip = 0; ip < length; ip++) {
+        Instruction inst = program[ip];
         switch (inst.op) {
             case OP_PUSH:
                 fprintf(com, "  ;; -- push %d --\n", inst.value);
@@ -121,11 +176,24 @@ void compile_program(Instruction program[], int length, const char *name) {
                 fprintf(com, "  pop rbx\n");
                 fprintf(com, "  cmp rax, rbx\n");
                 fprintf(com, "  cmove rcx, rdx\n");
+                fprintf(com, "  push rcx\n");
                 break;
-            case OP_DUMP:
-                fprintf(com, "  ;; -- dump --\n");
+            case OP_IF:
+                fprintf(com, "  ;; -- if --\n");
                 fprintf(com, "  pop rax\n");
-                fprintf(com, "  call print\n");
+                fprintf(com, "  cmp rax, 0\n");
+                fprintf(com, "  jne _end_%d\n", ip++);
+                if_stack[sp++] = ip;
+                break;
+            case OP_ELSE:
+                fprintf(com, "  ;; -- else --\n");
+                fprintf(com, "  je _else_%d\n", ip++);
+                fprintf(com, "_else_%d:\n", ip++);
+
+                break;
+            case OP_END:
+                fprintf(com, "  ;; -- end --\n");
+                fprintf(com, "_end_%d:\n", ip++);
                 break;
             default:
                 fprintf(stderr, "Error: unknown operation %d\n", inst.op);
@@ -137,121 +205,14 @@ void compile_program(Instruction program[], int length, const char *name) {
     fprintf(com, "  mov rdi, 0\n");
     fprintf(com, "  syscall\n");
 
-    fprintf(com, "print:\n");
-    fprintf(com, "  mov rcx, digitSpace\n");
-    fprintf(com, "  mov rbx, 10\n");
-    fprintf(com, "  mov [rcx], rbx\n");
-    fprintf(com, "  inc rcx\n");
-    fprintf(com, "  mov [digitSpacePos], rcx\n");
-
-    fprintf(com, "printLoop:\n");
-    fprintf(com, "  mov rdx, 0\n");
-    fprintf(com, "  mov rbx, 10\n");
-    fprintf(com, "  div rbx\n");
-    fprintf(com, "  push rax\n");
-    fprintf(com, "  add rdx, 48\n");
-    fprintf(com, "  mov rcx, [digitSpacePos]\n");
-    fprintf(com, "  mov [rcx], dl\n");
-    fprintf(com, "  inc rcx\n");
-    fprintf(com, "  mov [digitSpacePos], rcx\n");
-    fprintf(com, "  pop rax\n");
-    fprintf(com, "  cmp rax, 0\n");
-    fprintf(com, "  jne printLoop\n");
-
-    fprintf(com, "printLoop2:\n");
-    fprintf(com, "  mov rcx, [digitSpacePos]\n");
-    fprintf(com, "  mov rax, 1\n");
-    fprintf(com, "  mov rdi, 1\n");
-    fprintf(com, "  mov rsi, rcx\n");
-    fprintf(com, "  mov rdx, 1\n");
-    fprintf(com, "  syscall\n");
-    fprintf(com, "  mov rcx, [digitSpacePos]\n");
-    fprintf(com, "  dec rcx\n");
-    fprintf(com, "  mov [digitSpacePos], rcx\n");
-    fprintf(com, "  cmp rcx, digitSpace\n");
-    fprintf(com, "  jge printLoop2\n");
-    fprintf(com, "  ret\n");
-
     fclose(com);
-}
-
-void interpret_program(Instruction program[], int length) {
-    int stack[MAX_SIZE];
-    int stack_pointer = 0;
-
-    for (int i = 0; i < length; i++) {
-        Instruction inst = program[i];
-        switch (inst.op) {
-            case OP_PUSH:
-                stack[stack_pointer++] = inst.value;
-                break;
-            case OP_PLUS:
-                if (stack_pointer < 2) {
-                    fprintf(stderr, "Error: not enough values on stack for plus operation\n");
-                    return;
-                }
-                stack[stack_pointer - 2] += stack[stack_pointer - 1];
-                stack_pointer--;
-                break;
-            case OP_MINUS:
-                if (stack_pointer < 2) {
-                    fprintf(stderr, "Error: not enough values on stack for minus operation\n");
-                    return;
-                }
-                stack[stack_pointer - 2] -= stack[stack_pointer - 1];
-                stack_pointer--;
-                break;
-            case OP_DIVIDE:
-                if (stack_pointer < 2) {
-                    fprintf(stderr, "Error: not enough values on stack for divide operation\n");
-                    return;
-                }
-                if (stack[stack_pointer - 1] == 0) {
-                    fprintf(stderr, "Error: division by zero\n");
-                    return;
-                }
-                stack[stack_pointer - 2] /= stack[stack_pointer - 1];
-                stack_pointer--;
-                break;
-            case OP_MODULUS:
-                if (stack_pointer < 2) {
-                    fprintf(stderr, "Error: not enough values on stack for modulus operation\n");
-                    return;
-                }
-                if (stack[stack_pointer - 1] == 0) {
-                    fprintf(stderr, "Error: division by zero\n");
-                    return;
-                }
-                stack[stack_pointer - 2] %= stack[stack_pointer - 1];
-                stack_pointer--;
-                break;
-            case OP_EQUAL:
-                if (stack_pointer < 2) {
-                    fprintf(stderr, "Error: not enough values on stack for modulus operation\n");
-                    return;
-                }
-                stack[stack_pointer - 2] = (stack[stack_pointer - 2] == stack[stack_pointer - 1]) ? 1 : 0;
-                stack_pointer--;
-                break;
-            case OP_DUMP:
-                for (int j = 0; j < stack_pointer; j++) {
-                    printf("%d ", stack[j]);
-                }
-                printf("\n");
-                stack_pointer = 0;
-                break;
-            default:
-                fprintf(stderr, "Error: unknown operation %d\n", inst.op);
-                return;
-        }
-    }
 }
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
         fprintf(stderr, "Usage: %s <subcommand> <file>.afl\n", argv[0]);
         fprintf(stderr, "Subcommand: -c: Compile program to assembly\n");
-        fprintf(stderr, "            -i: Run program without compiling\n");
+        fprintf(stderr, "Subcommand: -r: Compile && Run program\n");
         return 1;
     }
 
@@ -299,6 +260,12 @@ int main(int argc, char *argv[]) {
                 program[program_length++] = modulus();
             } else if (strcmp(token, "=") == 0) {
                 program[program_length++] = equal();
+            } else if (strcmp(token, "?") == 0) {
+                program[program_length++] = iff();
+            } else if (strcmp(token, "~") == 0) {
+                program[program_length++] = elze();
+            } else if (strcmp(token, ";") == 0) {
+                program[program_length++] = end();
             } else if (strcmp(token, ".") == 0) {
                 program[program_length++] = dump();
             } else {
@@ -311,9 +278,7 @@ int main(int argc, char *argv[]) {
 
     fclose(file_handle);
 
-    if (strcmp(subcommand, "-i") == 0) {
-        interpret_program(program, program_length);
-    } else if (strcmp(subcommand, "-c") == 0) {
+    if (strcmp(subcommand, "-c") == 0) {
         compile_program(program, program_length, name);
         char cmd[MAX_SIZE];
         snprintf(cmd, sizeof(cmd), "nasm -felf64 build/%s.s -o build/%s.o", name, name);
@@ -321,6 +286,20 @@ int main(int argc, char *argv[]) {
         system(cmd);
 
         snprintf(cmd, sizeof(cmd), "ld -o build/%s build/%s.o", name, name);
+        printf("%s\n", cmd);
+        system(cmd);
+    } else if (strcmp(subcommand, "-r") == 0) {
+        compile_program(program, program_length, name);
+        char cmd[MAX_SIZE];
+        snprintf(cmd, sizeof(cmd), "nasm -felf64 build/%s.s -o build/%s.o", name, name);
+        printf("%s\n", cmd);
+        system(cmd);
+
+        snprintf(cmd, sizeof(cmd), "ld -o build/%s build/%s.o", name, name);
+        printf("%s\n", cmd);
+        system(cmd);
+
+        snprintf(cmd, sizeof(cmd), "./build/%s", name);
         printf("%s\n", cmd);
         system(cmd);
     } else {
