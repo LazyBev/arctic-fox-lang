@@ -4,21 +4,17 @@ IN=afl.c
 OUT=afl
 XTR=test
 
-fresh:
-	touch $(IN)
-all:
+clean:
+	rm -rf build
+	mkdir build
+cc:
 	$(CC) -o $(OUT) $(IN) $(CCFLAGS)
-run-c:
-	./$(XTR)
-inter:
-	./$(OUT) -i $(XTR).afl
 compile:
 	./$(OUT) -c $(XTR).afl
-caio:
-	make all
-	make compile
+run:
+	./$(OUT) -r $(XTR).afl
+all:
+	make clean
+	make cc
 	clear
-	./build/$(XTR)
-iaio:
-	make all
-	make inter
+	make run
