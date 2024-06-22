@@ -15,6 +15,7 @@ enum {
     OP_IF,
     OP_ELSE,
     OP_END,
+    OP_COMMENT,
 };
 
 typedef struct {
@@ -64,6 +65,11 @@ Instruction end() {
 
 Instruction minus() {
     Instruction inst = {OP_MINUS, 0};
+    return inst;
+}
+
+Instruction comment(int x) {
+    Instruction inst = {OP_COMMENT, x};
     return inst;
 }
 
@@ -194,6 +200,10 @@ void compile_program(Instruction program[], int length, const char *name) {
                 fprintf(com, "  ;; -- end --\n");
                 fprintf(com, "_end_%d:\n", ip++);
                 break;
+            case OP_COMMENT: // No worky
+                fprintf(com, "  ;; -- comment --\n");
+                fprintf(com, "  ;; %d", inst.value);
+                break;
             default:
                 fprintf(stderr, "Error: unknown operation %d\n", inst.op);
                 fclose(com);
@@ -242,12 +252,9 @@ int main(int argc, char *argv[]) {
     char line[MAX_SIZE];
 
     while (fgets(line, sizeof(line), file_handle)) {
-        
-        if (strncmp(line, ";;", 2) == 0) {
-            continue;
-        }
 
         char *token = strtok(line, " \t\n");
+        char *comnt = strtok(line, "\n");
         while (token != NULL) {
             if (strcmp(token, "+") == 0) {
                 program[program_length++] = plus();
@@ -263,10 +270,13 @@ int main(int argc, char *argv[]) {
                 program[program_length++] = iff();
             } else if (strcmp(token, "~") == 0) {
                 program[program_length++] = elze();
-            } else if (strcmp(token, ";") == 0) {
-                program[program_length++] = end();
             } else if (strcmp(token, ".") == 0) {
                 program[program_length++] = dump();
+            } else if (strcmp(token, "!") == 0) {
+                program[program_length++] = end();
+            } else if (strncmp(token, ";", 2) == 0) {
+                int value = atoi(comnt);
+                program[program_length++] = comment(value);
             } else {
                 int value = atoi(token);
                 program[program_length++] = push(value);
