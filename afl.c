@@ -64,6 +64,7 @@ void compile_program(Instruction program[], int length, const char *name) {
         return;
     }
 
+    fprintf(com, "bits 64\n");
     fprintf(com, "section .bss\n");
     fprintf(com, "  buffer resb 20\n");
     fprintf(com, "  digitSpace resb 100\n");
@@ -114,12 +115,12 @@ void compile_program(Instruction program[], int length, const char *name) {
                 break;
             case OP_EQUAL:
                 fprintf(com, "  ;; -- equal --\n");
+                fprintf(com, "  mov rcx, 0\n");
+                fprintf(com, "  mov rdx, 1\n");
                 fprintf(com, "  pop rax\n");
                 fprintf(com, "  pop rbx\n");
-                fprintf(com, "  cmp rbx, rax\n");
-                fprintf(com, "  sete al\n");
-                fprintf(com, "  movzx rax, al\n");
-                fprintf(com, "  push rax\n");
+                fprintf(com, "  cmp rax, rbx\n");
+                fprintf(com, "  cmove rcx, rdx\n");
                 break;
             case OP_DUMP:
                 fprintf(com, "  ;; -- dump --\n");
