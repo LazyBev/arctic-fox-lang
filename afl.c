@@ -9,12 +9,14 @@ enum {
     OP_PLUS,
     OP_MINUS,
     OP_DIVIDE,
+    OP_MULTIPLY,
     OP_MODULUS,
     OP_DUMP,
     OP_EQUAL,
     OP_IF,
     OP_ELSE,
     OP_END,
+    OP_EXIT,
     OP_COMMENT,
 };
 
@@ -30,6 +32,11 @@ Instruction push(int x) {
 
 Instruction plus() {
     Instruction inst = {OP_PLUS, 0};
+    return inst;
+}
+
+Instruction multiply() {
+    Instruction inst = {OP_MULTIPLY, 0};
     return inst;
 }
 
@@ -65,6 +72,11 @@ Instruction end() {
 
 Instruction minus() {
     Instruction inst = {OP_MINUS, 0};
+    return inst;
+}
+
+Instruction exitt() {
+    Instruction inst = {OP_EXIT, 0};
     return inst;
 }
 
@@ -140,18 +152,18 @@ void compile_program(Instruction program[], int length, const char *name) {
     for (int ip = 0; ip < length; ip++) {
         Instruction inst = program[ip];
         switch (inst.op) {
-            case OP_PUSH:
+            case OP_PUSH: // Worky :D
                 fprintf(com, "  ;; -- push %d --\n", inst.value);
                 fprintf(com, "  push %d\n", inst.value);
                 break;
-            case OP_PLUS:
+            case OP_PLUS: // No worky :C
                 fprintf(com, "  ;; -- plus --\n");
                 fprintf(com, "  pop rax\n");
                 fprintf(com, "  pop rbx\n");
                 fprintf(com, "  add rax, rbx\n");
                 fprintf(com, "  push rax\n");
                 break;
-            case OP_DIVIDE:
+            case OP_DIVIDE: // No worky :C
                 fprintf(com, "  ;; -- divide --\n");
                 fprintf(com, "  pop rbx\n");
                 fprintf(com, "  pop rax\n");
@@ -159,7 +171,14 @@ void compile_program(Instruction program[], int length, const char *name) {
                 fprintf(com, "  div rbx\n");
                 fprintf(com, "  push rax\n");
                 break;
-            case OP_MODULUS:
+            case OP_MULTIPLY:
+                fprintf(com, "  ;; -- multiply --\n");
+                fprintf(com, "  pop rax\n");
+                fprintf(com, "  pop rbx\n");
+                fprintf(com, "  mul rax, rbx\n");
+                fprintf(com, "  push rax\n");
+                break;
+            case OP_MODULUS: // No worky :C
                 fprintf(com, "  ;; -- modulus --\n");
                 fprintf(com, "  pop rbx\n");
                 fprintf(com, "  pop rax\n");
@@ -167,14 +186,14 @@ void compile_program(Instruction program[], int length, const char *name) {
                 fprintf(com, "  div rbx\n");
                 fprintf(com, "  push rdx\n");
                 break;
-            case OP_MINUS:
+            case OP_MINUS: // No worky :C
                 fprintf(com, "  ;; -- minus --\n");
                 fprintf(com, "  pop rax\n");
                 fprintf(com, "  pop rbx\n");
                 fprintf(com, "  sub rbx, rax\n");
                 fprintf(com, "  push rbx\n");
                 break;
-            case OP_EQUAL:
+            case OP_EQUAL: // No worky :C
                 fprintf(com, "  ;; -- equal --\n");
                 fprintf(com, "  mov rcx, 0\n");
                 fprintf(com, "  mov rdx, 1\n");
@@ -184,25 +203,30 @@ void compile_program(Instruction program[], int length, const char *name) {
                 fprintf(com, "  cmove rcx, rdx\n");
                 fprintf(com, "  push rcx\n");
                 break;
-            case OP_IF: // Semi worky
+            case OP_IF: // No worky :C
                 fprintf(com, "  ;; -- if --\n");
                 fprintf(com, "  pop rax\n");
                 fprintf(com, "  cmp rax, 0\n");
                 fprintf(com, "  jne _end_%d\n", ip++);
                 if_stack[sp++] = ip;
                 break;
-            case OP_ELSE: // No worky
+            case OP_ELSE: // No worky :C
                 fprintf(com, "  ;; -- else --\n");
                 fprintf(com, "  je _else_%d\n", ip++);
                 fprintf(com, "_else_%d:\n", ip++);
                 break;
-            case OP_END: // No worky
+            case OP_END: // No worky :C
                 fprintf(com, "  ;; -- end --\n");
                 fprintf(com, "_end_%d:\n", ip++);
                 break;
-            case OP_COMMENT: // No worky
+            case OP_COMMENT: // No worky :C
                 fprintf(com, "  ;; -- comment --\n");
                 fprintf(com, "  ;; %d", inst.value);
+                break;
+            case OP_EXIT: // Worky :D
+                fprintf(com, "  mov rax, 60\n");
+                fprintf(com, "  mov rdi, 0\n");
+                fprintf(com, "  syscall\n");
                 break;
             default:
                 fprintf(stderr, "Error: unknown operation %d\n", inst.op);
@@ -210,10 +234,6 @@ void compile_program(Instruction program[], int length, const char *name) {
                 return;
         }
     }
-    fprintf(com, "  mov rax, 60\n");
-    fprintf(com, "  mov rdi, 0\n");
-    fprintf(com, "  syscall\n");
-
     fclose(com);
 }
 
@@ -262,6 +282,8 @@ int main(int argc, char *argv[]) {
                 program[program_length++] = minus();
             } else if (strcmp(token, "/") == 0) {
                 program[program_length++] = divide();
+            } else if (strcmp(token, "*") == 0) {
+                program[program_length++] = multiply();
             } else if (strcmp(token, "\%") == 0) {
                 program[program_length++] = modulus();
             } else if (strcmp(token, "=") == 0) {
@@ -274,6 +296,8 @@ int main(int argc, char *argv[]) {
                 program[program_length++] = dump();
             } else if (strcmp(token, "!") == 0) {
                 program[program_length++] = end();
+            } else if (strcmp(token, "ret") == 0) {
+                program[program_length++] = exitt();
             } else if (strncmp(token, ";", 2) == 0) {
                 int value = atoi(comnt);
                 program[program_length++] = comment(value);
