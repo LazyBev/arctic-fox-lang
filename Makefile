@@ -12,7 +12,7 @@ cc:
 compile:
 	./$(OUT) -c $(XTR).afl
 run:
-	./$(OUT) -r $(XTR).afl
+	./$(OUT) $(XTR).afl
 all:
 	make clean
 	make cc
