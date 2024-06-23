@@ -171,7 +171,7 @@ void compile_program(Instruction program[], int length, const char *name) {
                 fprintf(com, "  div rbx\n");
                 fprintf(com, "  push rax\n");
                 break;
-            case OP_MULTIPLY:
+            case OP_MULTIPLY: // No worky :C
                 fprintf(com, "  ;; -- multiply --\n");
                 fprintf(com, "  pop rax\n");
                 fprintf(com, "  pop rbx\n");
