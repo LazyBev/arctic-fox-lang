@@ -78,7 +78,19 @@ void interpret_program(char *word, FILE *file) {
     } else if (strcmp(word, "exit") == 0) {
         return;
     } else if (strncmp(word, ":", 1) == 0) {
-        push(atoi(word + 1));
+        if (strcmp(word + 1, "dup") == 0) {
+            if (stack_pointer > 0) {
+                a = pop();
+                push(a);
+                push(a);
+            } else {
+                printf("Syntax Error: Stack underflow for dup\n");
+                exit(1);
+            }
+        } else {
+            push(atoi(word + 1));
+        }
+    } else if (strcmp(word, "dup") == 0) {
     } else if (strcmp(word, "=") == 0) {
         if (stack_pointer >= 2) {
             a = pop();
@@ -88,11 +100,65 @@ void interpret_program(char *word, FILE *file) {
             printf("Syntax Error: Insufficient operands for =\n");
             exit(1);
         }
+    } else if (strcmp(word, ">") == 0) {
+        if (stack_pointer >= 2) {
+            a = pop();
+            b = pop();
+            push(b > a ? 1 : 0);
+        } else {
+            printf("Syntax Error: Insufficient operands for >\n");
+            exit(1);
+        }
+    } else if (strcmp(word, "<") == 0) {
+        if (stack_pointer >= 2) {
+            a = pop();
+            b = pop();
+            push(b < a ? 1 : 0);
+        } else {
+            printf("Syntax Error: Insufficient operands for <\n");
+            exit(1);
+        }
+    } else if (strcmp(word, "!>") == 0) {
+        if (stack_pointer >= 2) {
+            a = pop();
+            b = pop();
+            push(b > a ? 0 : 1);
+        } else {
+            printf("Syntax Error: Insufficient operands for !>\n");
+            exit(1);
+        }
+    } else if (strcmp(word, "!<") == 0) {
+        if (stack_pointer >= 2) {
+            a = pop();
+            b = pop();
+            push(b < a ? 0 : 1);
+        } else {
+            printf("Syntax Error: Insufficient operands for !<\n");
+            exit(1);
+        }
+    } else if (strcmp(word, ">=") == 0) {
+        if (stack_pointer >= 2) {
+            a = pop();
+            b = pop();
+            push(b >= a ? 1 : 0);
+        } else {
+            printf("Syntax Error: Insufficient operands for >=\n");
+            exit(1);
+        }
+    } else if (strcmp(word, "<=") == 0) {
+        if (stack_pointer >= 2) {
+            a = pop();
+            b = pop();
+            push(b <= a ? 1 : 0);
+        } else {
+            printf("Syntax Error: Insufficient operands for <=\n");
+            exit(1);
+        }
     } else if (strcmp(word, "!=") == 0) {
         if (stack_pointer >= 2) {
             a = pop();
             b = pop();
-            push(b == a ? 0 : 1);
+            push(b != a ? 1 : 0);
         } else {
             printf("Syntax Error: Insufficient operands for !=\n");
             exit(1);
