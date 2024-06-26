@@ -1,20 +1,20 @@
 CC=gcc
 CCFLAGS=-Wall -Wextra -Wno-format-truncation -Wno-sign-compare -fPIE
-IN=afl.c
+IN=broke.c
 OUT=afl
 XTR=test
 
 clean:
-	rm -rf build
-	mkdir build
-cc:
-	$(CC) -o $(OUT) $(IN) $(CCFLAGS)
-compile:
-	./$(OUT) -c $(XTR).afl
+	rm test.s
+	rm test.o
+	rm test
+build:
+	$(CC) -o $(OUT) $(IN)
+	./$(OUT) -c $(XTR).afl $(XTR).s
+	nasm -felf64 -o $(XTR).o $(XTR).s
+	ld -o $(XTR) $(XTR).o
 run:
-	./$(OUT) $(XTR).afl
-all:
+	./$(XTR)
+compile:
 	make clean
-	make cc
-	clear
-	make run
+	make build
