@@ -119,19 +119,29 @@ mem 0 + 97 . 1 mem 1 1 syscall3 -> 'a'
 ---------------------------------------------------------------------------------------------------------------------------
 
 ```(condition) if (code to exec)```: Checks to see if comparison is true and executes some code
+
 ```else (code to exec)```: If conditon is false executes some code
+
 ```end```:
 
 Example:
 
 20 20 + 40 = if
+
     20 20 + 41 = if
+    
         50 prn
+        
     else
+    
         70 prn
+        
     end
+    
 else
+
     60 prn
+    
 end
 
 Result -> 70
@@ -139,14 +149,19 @@ Result -> 70
 ---------------------------------------------------------------------------------------------------------------------------
 
 ```(start) while (condition)```: Takes in a starting value and matches it with condition
+
 ```do (code to loop)```: Executes looped code
+
 ```done```: Ends while statement (done)
 
 Example:
 
 0 while dup 11 > do
+
     dup prn
+    
     1 +
+    
 done
 
 Result -> 0 1 2 3 4 5 6 7 8 9 10
