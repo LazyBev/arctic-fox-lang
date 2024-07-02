@@ -126,23 +126,23 @@ mem 0 + 97 . 1 mem 1 1 syscall3 -> 'a'
 
 Example:
 
-20 20 + 40 = if
+    20 20 + 40 = if
 
-    20 20 + 41 = if
+        20 20 + 41 = if
     
-        50 prn
+           50 prn
         
+        else
+    
+           70 prn
+        
+        end
+    
     else
-    
-        70 prn
-        
-    end
-    
-else
 
-    60 prn
+        60 prn
     
-end
+    end
 
 Result -> 70
 
