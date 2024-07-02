@@ -66,7 +66,9 @@ e.g.
 
 ```,```: Loads a value to memory
 
-```syscallN (N = 1 to 6)```: Performs a linux syscall 
+```syscallN (N = 1 to 6)```: Performs a linux syscall
+
+Examples: 
 
 60 prn -> 60
 
@@ -120,6 +122,8 @@ mem 0 + 97 . 1 mem 1 1 syscall3 -> 'a'
 ```else (code to exec)```: If conditon is false executes some code
 ```end```:
 
+Example:
+
 20 20 + 40 = if
     20 20 + 41 = if
         50 prn
@@ -137,6 +141,8 @@ Result -> 70
 ```(start) while (condition)```: Takes in a starting value and matches it with condition
 ```do (code to loop)```: Executes looped code
 ```done```: Ends while statement (done)
+
+Example:
 
 0 while dup 11 > do
     dup prn
