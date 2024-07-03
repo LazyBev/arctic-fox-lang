@@ -132,17 +132,17 @@ Example:
 
         20 20 + 41 = if
     
-           50 ```prn```
+           50 prn
         
         else
     
-           70 ```prn```
+           70 prn
         
         end
     
     else
 
-        60 ```prn```
+        60 prn
     
     end
 
@@ -160,7 +160,7 @@ Example:
 
     1 while dup 4 > do
     
-        dup ```prn```
+        dup prn
       
         1 +
       
