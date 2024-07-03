@@ -37,7 +37,7 @@ class OpType(Enum):
 	OP_2DUP = auto()
 	OP_SWAP = auto()
 	OP_OVER = auto()
-	OP_DROP = auto()
+	OP_POP = auto()
 	OP_MEM = auto()
 	OP_STORE = auto()
 	OP_LOAD = auto()
@@ -61,12 +61,11 @@ Program=List[Op]
 class TokenType(Enum):
     WORD=auto()
     INT=auto()
-    STR=auto()
 
 @dataclass   
 class Token():
 	typ: TokenType
-	value: Union[int, str]
+	value: [int]
  
 MEM_CAP = 640_000
 
@@ -342,8 +341,8 @@ def compile(program, out):
 				out.write("    push rbx\n")
 				out.write("    push rax\n")
 				out.write("    push rbx\n")
-			elif op.typ == OpType.OP_DROP:
-				out.write("    ; -- drop --\n")
+			elif op.typ == OpType.OP_POP:
+				out.write("    ; -- pop --\n")
 				out.write("    pop rax\n")
 			elif op.typ == OpType.OP_MEM:
 				out.write("    ; -- mem --\n")
@@ -446,7 +445,7 @@ TOKEN_WORDS = {
 	"2dup": OpType.OP_2DUP,
 	"swap": OpType.OP_SWAP,
 	"over": OpType.OP_OVER,
-	"drop": OpType.OP_DROP,
+	"pop": OpType.OP_POP,
 	"mem": OpType.OP_MEM,
 	".": OpType.OP_STORE,
 	",": OpType.OP_LOAD,
