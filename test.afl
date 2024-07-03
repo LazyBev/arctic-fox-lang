@@ -24,7 +24,7 @@ mem 2 + 99 .
 mem 3 + 10 .
 4 mem 1 1 syscall3
 
-0 while dup 11 > do
+1 while dup 4 > do
     dup prn
     1 +
 done
