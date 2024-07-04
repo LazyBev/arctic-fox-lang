@@ -203,3 +203,27 @@ Example:
     lol
 
 Result -> `120`
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Include
+
+    ```[(file)]```: Includes a file
+
+
+Example:
+    in std.afl:
+
+        macro idk
+
+            50 prn
+
+        close
+
+    in other file
+
+    [std.afl]
+
+    idk
+
+Result -> ```50```
