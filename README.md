@@ -82,54 +82,54 @@ Extra:
     //: Comment line
 
 Examples: 
-
+    
     60 prn // prints 60
-
+    
     20 10 - prn // prints 10
-
-    20 10 + prn // 30
-
-    20 10 * prn -> 200
-
-    20 10 / prn -> 2
-
-    20 2 % prn -> 0
-
-    2 2 = prn -> 1
-
-    2 2 != prn -> 0
-
-    1 2 > prn -> 0
-
-    2 2 >= prn -> 1
-
-    1 2 !> prn -> 1
-
-    1 2 < prn -> 1
-
-    3 2 <= prn -> 0
-
-    1 2 !< prn -> 0
-
-    2 dup + prn -> 4
-
-    2 4 2dup + prn -> 6
-
-    1 2 or prn -> 3
-
-    1 3 xor prn -> 2
-
-    3 3 and prn -> 3
-
-    1 2 swap prn -> 1
-
-    4 5 over - prn -> 1
-
-    5 4 pop prn -> 5
-
-    mem 0 + 97 . -> (pushes ASCII) 'a'
-
-    1 mem 1 1 syscall3 -> (prints) 'a'
+    
+    20 10 + prn // prints 30
+    
+    20 10 * prn // prints 200
+    
+    20 10 / prn // prints 2
+    
+    20 2 % prn // prints 0
+    
+    2 2 = prn // prints 1
+    
+    2 2 != prn // prints 0
+    
+    1 2 > prn // prints 0
+    
+    2 2 >= prn // prints 1
+    
+    1 2 !> prn // prints 1
+    
+    1 2 < prn // prints 1
+    
+    3 2 <= prn // prints 0
+    
+    1 2 !< prn // prints 0
+    
+    2 dup + prn // prints 4
+    
+    2 4 2dup + prn // prints 6
+    
+    1 2 or prn // prints 3
+    
+    1 3 xor prn // prints 2
+    
+    3 3 and prn // prints 3
+    
+    1 2 swap prn // prints 1
+    
+    4 5 over - prn // prints 1
+    
+    5 4 pop prn // prints 5
+    
+    mem 0 + 97 . // (pushes ASCII) 'a'
+    
+    1 mem 1 1 syscall3 // (prints) 'a'
 
 
 ---------------------------------------------------------------------------------------------------------------------------
