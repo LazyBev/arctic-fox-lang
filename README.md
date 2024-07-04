@@ -68,11 +68,11 @@ Logical Operations
 
 Memory Operations
 
-    mem: Memory-related operation
+    byte: Creates a byte in memeory
 
-    .: Stores a value to memory
+    store: Stores a value to memory
 
-    ,: Loads a value from memory
+    load: Loads a value from memory
 
 System Calls
 
