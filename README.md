@@ -125,7 +125,7 @@ Examples:
     
     4 5 over - prn // prints 1
     
-    5 4 pop prn // prints 5
+    5 4 drop prn // prints 5
     
     mem 0 + 97 . // (pushes ASCII) 'a'
     
