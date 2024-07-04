@@ -1,0 +1,6 @@
+1 while dup 101 > do
+    dup prn
+    1 +
+done // 1 - 100
+
+exit
