@@ -1,0 +1,12 @@
+macro stdin 0 close
+macro stdout 1 close
+macro stderr 2 close
+macro sys_read 0 close
+macro sys_write 1 close
+
+macro true 1 close
+macro false 0 close
+
+macro write 1 1 syscall3 drop close
+
+macro exit 0 60 syscall1 close
