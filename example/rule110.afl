@@ -35,4 +35,4 @@ bit 28 + 1 store
 done
 drop
 
-exit
+0 exit
