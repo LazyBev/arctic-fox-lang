@@ -506,8 +506,9 @@ def tokenize(lines: List[str], current_file: str = "") -> List[Token]:
 		for word in line:
 			if word.isnumeric():
 				out.append(Token(TokenType.INT, int(word)))
-			elif word.startswith("[") and word.endswith("]"):
-				include_file = word[1:-1]
+			elif word.startswith(";"):
+				include_file = word[1:]
+				print(f"{include_file}")
 				if current_file:
 					include_file = os.path.join(os.path.dirname(current_file), include_file)
 				with open(include_file) as f:
