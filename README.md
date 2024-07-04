@@ -208,7 +208,7 @@ Result -> `120`
 
 Include
 
-    ```[(file)]```: Includes a file
+    [(file)]: Includes a file
 
 
 Example:
