@@ -1,12 +1,19 @@
-macro stdin 0 close
-macro stdout 1 close
-macro stderr 2 close
-macro sys_read 0 close
-macro sys_write 1 close
-
 macro true 1 close
 macro false 0 close
 
-macro write 1 1 syscall3 drop close
+macro 2dup over over close
+macro 2drop drop drop close 
 
-macro exit 0 60 syscall1 close
+macro stdin 0 close
+macro stdout 1 close
+macro stderr 2 close
+
+macro sys_read 0 close
+macro sys_write 1 close
+macro sys_open 2 close
+macro sys_close 3 close
+macro sys_exit 60 close
+
+macro read sys_read syscall3 close
+macro write sys_write syscall3 close
+macro exit sys_exit syscall1 close
