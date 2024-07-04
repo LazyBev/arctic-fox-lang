@@ -1,4 +1,4 @@
-XTRC=seq
+XTRC=test
 
 cleanc:
 	rm $(XTRC).s
