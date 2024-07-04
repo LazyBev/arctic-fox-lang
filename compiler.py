@@ -6,6 +6,7 @@ from typing import *
 
 class OpType(Enum):
 	OP_PUSH_INT = auto()
+	OP_PUSH_STRING = auto()
 	OP_PLUS = auto()
 	OP_MINUS = auto()
 	OP_MULTIPLY = auto()
@@ -62,29 +63,33 @@ Program = List[Op]
 macros = {}
 
 class TokenType(Enum):
-    WORD=auto()
-    INT=auto()
+	INT=auto()
+	WORD=auto()
+	STR=auto()
 
 @dataclass   
 class Token():
 	typ: TokenType
-	value: [int]
+	value: Optional[Union[int, str]] = None
 
 @dataclass
 class Macro:
 	name: str
 	body: List[Op]
-
  
 MEM_CAP = 640_000
 
 def compile(program, out):
+	strs=[]
 	with open(out, "w") as out:
 		out.write("BITS 64\n")
 		out.write("section .bss\n")
 		out.write("mem resb %d\n" % MEM_CAP)
 		out.write("digitSpace resb 64\n")
 		out.write("digitSpacePos resq 1\n")
+		out.write("section .data\n")
+		for index, s in enumerate(strs):
+			out.write("str_%d: db %s\n" % (index, ','.join(map(hex, list(bytes(s, 'utf-8'))))))
 		out.write("section .text\n")
 		out.write("printNum:\n")
 		out.write("    mov rcx, digitSpace\n")
@@ -133,9 +138,18 @@ def compile(program, out):
 			if op.typ == OpType.OP_PUSH_INT:
 				out.write("    ; -- push int --\n")
 				if op.value is not None:
-					out.write(f"    push {op.value}\n")
+					out.write("    push %d\n" % op.value)
 				else:
 					raise ValueError("OP_PUSH_INT operation missing value")
+			elif op.typ == OpType.OP_PUSH_STRING:
+				out.write(f"    ; -- push string --\n")
+				if op.value is not None:
+					strs.append(op.value)
+					str_index = len(strs) - 1
+					out.write(f"    lea rax, [rel str_{str_index}]\n")
+					out.write(f"    push rax\n")
+				else:
+					raise ValueError("OP_PUSH_STRING operation missing value")
 			elif op.typ == OpType.OP_PLUS:
 				out.write("    ; -- plus --\n")
 				out.write("    pop rax\n")
@@ -483,6 +497,8 @@ def tokenize(lines: List[str]) -> List[Token]:
 		for word in line:
 			if word.isnumeric():
 				out.append(Token(TokenType.INT, int(word)))
+			elif word.startswith("\"") and word.endswith("\""):
+				out.append(Token(TokenType.STR, str(word)))
 			elif word == '//':
 				break
 			else:
@@ -498,6 +514,8 @@ def parse(tokens: List[Token]) -> Program:
         token = tokens[i]
         if token.typ == TokenType.INT:
             out.append(Op(OpType.OP_PUSH_INT, token.value))
+        elif token.typ == TokenType.STR:
+            out.append(Op(OpType.OP_PUSH_STRING, token.value))
         elif token.typ == TokenType.WORD:
             if token.value in TOKEN_WORDS:
                 op_type = TOKEN_WORDS[token.value]
@@ -508,6 +526,8 @@ def parse(tokens: List[Token]) -> Program:
                     while tokens[i].value != 'close':
                         if tokens[i].typ == TokenType.INT:
                             macro_body.append(Op(OpType.OP_PUSH_INT, tokens[i].value))
+                        elif tokens[i].typ == TokenType.STR:
+                            macro_body.append(Op(OpType.OP_PUSH_STRING, tokens[i].value))
                         elif tokens[i].typ == TokenType.WORD:
                             if tokens[i].value in TOKEN_WORDS:
                                 macro_body.append(Op(TOKEN_WORDS[tokens[i].value]))
@@ -521,8 +541,8 @@ def parse(tokens: List[Token]) -> Program:
                 if token.value in macros:
                     for op in macros[token.value]:
                         out.append(op)
-                else:
-                    raise ValueError(f"Unrecognized word: {token.value}")
+        else:
+            raise ValueError(f"Unrecognized word: {token.value}")
         i += 1
 
     processed_program = [op for op in out if op.typ != OpType.OP_MACRO and op.typ != OpType.OP_CLOSE]
