@@ -1,4 +1,5 @@
 import sys
+import os
 from enum import Enum, auto
 import subprocess
 from dataclasses import dataclass
@@ -51,7 +52,6 @@ class OpType(Enum):
 	OP_SYSCALL5 = auto()
 	OP_SYSCALL6 = auto()
 	OP_PRINT_INT = auto()
-	OP_EXIT = auto()
 
 @dataclass
 class Op:
@@ -72,57 +72,12 @@ class Token():
 	typ: TokenType
 	value: Optional[Union[int, str]] = None
 
-@dataclass
-class Macro:
-	name: str
-	body: List[Op]
- 
 MEM_CAP = 640_000
 
 def compile(program, out):
 	strs=[]
 	with open(out, "w") as out:
 		out.write("BITS 64\n")
-		out.write("section .bss\n")
-		out.write("mem resb %d\n" % MEM_CAP)
-		out.write("digitSpace resb 64\n")
-		out.write("digitSpacePos resq 1\n")
-		out.write("section .data\n")
-		for index, s in enumerate(strs):
-			out.write("str_%d: db %s\n" % (index, ','.join(map(hex, list(bytes(s, 'utf-8'))))))
-		out.write("section .text\n")
-		out.write("printNum:\n")
-		out.write("    mov rcx, digitSpace\n")
-		out.write("    mov rbx, 10\n")
-		out.write("    mov [rcx], rbx\n")
-		out.write("    inc rcx\n")
-		out.write("    mov [digitSpacePos], rcx\n")				
-		out.write("printNumLoop:\n")
-		out.write("    mov rdx, 0\n")
-		out.write("    mov rbx, 10\n")
-		out.write("    div rbx\n")
-		out.write("    push rax\n")
-		out.write("    add rdx, 48\n")
-		out.write("    mov rcx, [digitSpacePos]\n")
-		out.write("    mov [rcx], dl\n")
-		out.write("    inc rcx\n")
-		out.write("    mov [digitSpacePos], rcx\n")
-		out.write("    pop rax\n")
-		out.write("    cmp rax, 0\n")
-		out.write("    jne printNumLoop\n")
-		out.write("printNumLoop2:\n")
-		out.write("    mov rcx, [digitSpacePos]\n")
-		out.write("    mov rax, 1\n")
-		out.write("    mov rdi, 1\n")
-		out.write("    mov rsi, rcx\n")
-		out.write("    mov rdx, 1\n")
-		out.write("    syscall\n")
-		out.write("    mov rcx, [digitSpacePos]\n")
-		out.write("    dec rcx\n")
-		out.write("    mov [digitSpacePos], rcx\n")
-		out.write("    cmp rcx, digitSpace\n")
-		out.write("    jge printNumLoop2\n")
-		out.write("    ret\n")
 		out.write("global _start\n")
 		out.write("_start:\n")
 
@@ -133,12 +88,13 @@ def compile(program, out):
 		while_stack = []
 		do_stack = []
 		end_while_stack = []
+		sindex = 0
 
 		for op in program:
 			if op.typ == OpType.OP_PUSH_INT:
 				out.write("    ; -- push int --\n")
 				if op.value is not None:
-					out.write("    push %d\n" % op.value)
+					out.write(f"    push {op.value}\n")
 				else:
 					raise ValueError("OP_PUSH_INT operation missing value")
 			elif op.typ == OpType.OP_PUSH_STRING:
@@ -146,8 +102,10 @@ def compile(program, out):
 				if op.value is not None:
 					strs.append(op.value)
 					str_index = len(strs) - 1
-					out.write(f"    lea rax, [rel str_{str_index}]\n")
-					out.write(f"    push rax\n")
+					out.write(f"    mov rax, {len(op.value)}\n")
+					out.write("    push rax\n")
+					out.write(f"    push str_{sindex}\n")
+					sindex += 1
 				else:
 					raise ValueError("OP_PUSH_STRING operation missing value")
 			elif op.typ == OpType.OP_PLUS:
@@ -231,10 +189,6 @@ def compile(program, out):
 				out.write("    ; -- end while--\n")
 				out.write("    jmp %s\n" % current_while_label)
 				out.write("%s:\n" % current_end_while_label)
-			elif op.typ == OpType.OP_MACRO:
-				pass
-			elif op.typ == OpType.OP_CLOSE:
-				pass
 			elif op.typ == OpType.OP_GT:
 				out.write("    ; -- greater than --\n")
 				out.write("    mov rcx, 0\n")
@@ -434,13 +388,62 @@ def compile(program, out):
 				out.write("    ; -- print --\n")
 				out.write("    pop rax\n")
 				out.write("    call printNum\n")
-			elif op.typ == OpType.OP_EXIT:
-				out.write("    ; -- exit --\n")
-				out.write("    mov rax, 60\n")
-				out.write("    mov rdi, 0\n")
-				out.write("    syscall\n")
 			else:
 				raise ValueError(f"Unknown opcode: {op.typ}")
+
+		out.write("section .bss\n")
+		out.write("mem resb %d\n" % MEM_CAP)
+		out.write("digitSpace resb 64\n")
+		out.write("digitSpacePos resq 1\n")
+		out.write("section .data\n")
+		for index, s in enumerate(strs):
+			out.write("str_%d: db %s\n" % (index, ','.join(map(hex, list(bytes(s, 'utf-8'))))))
+		out.write("section .text\n")
+		out.write("printNum:\n")
+		out.write("    mov rcx, digitSpace\n")
+		out.write("    mov rbx, 10\n")
+		out.write("    mov [rcx], rbx\n")
+		out.write("    inc rcx\n")
+		out.write("    mov [digitSpacePos], rcx\n")				
+		out.write("printNumLoop:\n")
+		out.write("    mov rdx, 0\n")
+		out.write("    mov rbx, 10\n")
+		out.write("    div rbx\n")
+		out.write("    push rax\n")
+		out.write("    add rdx, 48\n")
+		out.write("    mov rcx, [digitSpacePos]\n")
+		out.write("    mov [rcx], dl\n")
+		out.write("    inc rcx\n")
+		out.write("    mov [digitSpacePos], rcx\n")
+		out.write("    pop rax\n")
+		out.write("    cmp rax, 0\n")
+		out.write("    jne printNumLoop\n")
+		out.write("printNumLoop2:\n")
+		out.write("    mov rcx, [digitSpacePos]\n")
+		out.write("    mov rax, 1\n")
+		out.write("    mov rdi, 1\n")
+		out.write("    mov rsi, rcx\n")
+		out.write("    mov rdx, 1\n")
+		out.write("    syscall\n")
+		out.write("    mov rcx, [digitSpacePos]\n")
+		out.write("    dec rcx\n")
+		out.write("    mov [digitSpacePos], rcx\n")
+		out.write("    cmp rcx, digitSpace\n")
+		out.write("    jge printNumLoop2\n")
+		out.write("    ret\n")
+		out.write("printStr:\n")
+		out.write("    pop rsi\n")
+		out.write("    mov rdx, 0\n")
+		out.write("countStrLen:\n")
+		out.write("    cmp byte [rsi + rdx], 0\n")
+		out.write("    je doneCountStrLen\n")
+		out.write("    inc rdx\n")
+		out.write("    jmp countStrLen\n")
+		out.write("doneCountStrLen:\n")
+		out.write("    mov rax, 1\n")
+		out.write("    mov rdi, 1\n")
+		out.write("    syscall\n")
+		out.write("    ret\n")
 
 TOKEN_WORDS = {
 	"+": OpType.OP_PLUS,
@@ -466,38 +469,54 @@ TOKEN_WORDS = {
 	"!<": OpType.OP_NLT,
 	"!=": OpType.OP_NEQ,
 	"=": OpType.OP_EQ,
+
 	"shr": OpType.OP_SHR,
 	"shl": OpType.OP_SHL,
+
 	"not": OpType.OP_NOT,
 	"or": OpType.OP_OR,
 	"xor": OpType.OP_XOR,
 	"and": OpType.OP_AND,
+
 	"dup": OpType.OP_DUP,
 	"2dup": OpType.OP_2DUP,
+
 	"swap": OpType.OP_SWAP,
 	"over": OpType.OP_OVER,
 	"drop": OpType.OP_DROP,
+
 	"bit": OpType.OP_MEM,
 	"store": OpType.OP_STORE,
 	"load": OpType.OP_LOAD,
+
 	"syscall1": OpType.OP_SYSCALL1,
 	"syscall2": OpType.OP_SYSCALL2,
 	"syscall3": OpType.OP_SYSCALL3,
 	"syscall4": OpType.OP_SYSCALL4,
 	"syscall5": OpType.OP_SYSCALL5,
 	"syscall6": OpType.OP_SYSCALL6,
+
 	"prn": OpType.OP_PRINT_INT,
-	"exit": OpType.OP_EXIT,
 }
 
-def tokenize(lines: List[str]) -> List[Token]:
+def tokenize(lines: List[str], current_file: str = "") -> List[Token]:
 	out = []
 	for line in lines:
 		line = line.split()
 		for word in line:
 			if word.isnumeric():
 				out.append(Token(TokenType.INT, int(word)))
+			elif word.startswith("[") and word.endswith("]"):
+				include_file = word[1:-1]
+				if current_file:
+					include_file = os.path.join(os.path.dirname(current_file), include_file)
+				with open(include_file) as f:
+					include_lines = f.readlines()
+				include_tokens = tokenize(include_lines, include_file)
+				out.extend(include_tokens)
 			elif word.startswith("\"") and word.endswith("\""):
+				word = word[1:-1]
+				word = word + "\n"
 				out.append(Token(TokenType.STR, str(word)))
 			elif word == '//':
 				break
@@ -561,7 +580,7 @@ def command(cmd):
 def main(src, out):
     with open(src) as f:
         lines = f.readlines()
-    tokens = tokenize(lines)
+    tokens = tokenize(lines, src)
     program = parse(tokens)
     compile(program, out)
 
