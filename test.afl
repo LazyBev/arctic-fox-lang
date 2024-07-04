@@ -1,12 +1,20 @@
-20 10 - prn
+macro abc
+    mem 0 + 97 . // a
+    mem 1 + 98 . // b
+    mem 2 + 99 . // c
+    mem 3 + 10 . // \n
+    4 mem 1 1 syscall3 // abc
+close
 
-20 10 + prn
+20 10 - prn // 10
 
-20 10 * prn
+20 10 + prn // 30
 
-20 10 / prn
+20 10 * prn // 200
 
-20 2 % prn
+20 10 / prn // 2
+
+20 2 % prn // 0
 
 20 20 + 40 = if
     20 20 + 41 = if
@@ -16,17 +24,13 @@
     end
 else
     60 prn
-end
+end // 70
 
-mem 0 + 97 .
-mem 1 + 98 .
-mem 2 + 99 .
-mem 3 + 10 .
-4 mem 1 1 syscall3
+abc // 'abc'
 
 1 while dup 4 > do
     dup prn
     1 +
-done
+done // 1 2 3
 
 exit
