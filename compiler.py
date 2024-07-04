@@ -18,6 +18,8 @@ class OpType(Enum):
 	OP_WHILE = auto()
 	OP_DO = auto()
 	OP_ENDWHILE = auto()
+	OP_MACRO = auto()
+	OP_CLOSE = auto()
 
 	OP_NGT = auto()
 	OP_GT = auto()
@@ -37,7 +39,7 @@ class OpType(Enum):
 	OP_2DUP = auto()
 	OP_SWAP = auto()
 	OP_OVER = auto()
-	OP_POP = auto()
+	OP_DROP = auto()
 	OP_MEM = auto()
 	OP_STORE = auto()
 	OP_LOAD = auto()
@@ -56,7 +58,8 @@ class Op:
     value: Optional[Union[int, str]] = None
     jmp: Optional[int] = None
 
-Program=List[Op]
+Program = List[Op]
+macros = {}
 
 class TokenType(Enum):
     WORD=auto()
@@ -66,6 +69,12 @@ class TokenType(Enum):
 class Token():
 	typ: TokenType
 	value: [int]
+
+@dataclass
+class Macro:
+	name: str
+	body: List[Op]
+
  
 MEM_CAP = 640_000
 
@@ -124,7 +133,7 @@ def compile(program, out):
 			if op.typ == OpType.OP_PUSH_INT:
 				out.write("    ; -- push int --\n")
 				if op.value is not None:
-					out.write("    push %d\n" % op.value)
+					out.write(f"    push {op.value}\n")
 				else:
 					raise ValueError("OP_PUSH_INT operation missing value")
 			elif op.typ == OpType.OP_PLUS:
@@ -208,6 +217,10 @@ def compile(program, out):
 				out.write("    ; -- end while--\n")
 				out.write("    jmp %s\n" % current_while_label)
 				out.write("%s:\n" % current_end_while_label)
+			elif op.typ == OpType.OP_MACRO:
+				pass
+			elif op.typ == OpType.OP_CLOSE:
+				pass
 			elif op.typ == OpType.OP_GT:
 				out.write("    ; -- greater than --\n")
 				out.write("    mov rcx, 0\n")
@@ -341,7 +354,7 @@ def compile(program, out):
 				out.write("    push rbx\n")
 				out.write("    push rax\n")
 				out.write("    push rbx\n")
-			elif op.typ == OpType.OP_POP:
+			elif op.typ == OpType.OP_DROP:
 				out.write("    ; -- pop --\n")
 				out.write("    pop rax\n")
 			elif op.typ == OpType.OP_MEM:
@@ -413,7 +426,7 @@ def compile(program, out):
 				out.write("    mov rdi, 0\n")
 				out.write("    syscall\n")
 			else:
-				raise RuntimeError("Unsupported opcode: %d" % op.typ)
+				raise ValueError(f"Unknown opcode: {op.typ}")
 
 TOKEN_WORDS = {
 	"+": OpType.OP_PLUS,
@@ -421,18 +434,22 @@ TOKEN_WORDS = {
 	"*": OpType.OP_MULTIPLY,
 	"/": OpType.OP_DIVIDE,
 	"%": OpType.OP_MODULUS,
- 
+
 	"if": OpType.OP_IF,
 	"else": OpType.OP_ELSE,
 	"end": OpType.OP_END,
 	"while": OpType.OP_WHILE,
 	"do": OpType.OP_DO,
 	"done": OpType.OP_ENDWHILE,
- 
+	"macro": OpType.OP_MACRO,
+	"close": OpType.OP_CLOSE,
+
 	">": OpType.OP_GT,
 	">=": OpType.OP_GTE,
+	"!>": OpType.OP_NGT,
 	"<": OpType.OP_LT,
 	"<=": OpType.OP_LTE,
+	"!<": OpType.OP_NLT,
 	"!=": OpType.OP_NEQ,
 	"=": OpType.OP_EQ,
 	"shr": OpType.OP_SHR,
@@ -445,7 +462,7 @@ TOKEN_WORDS = {
 	"2dup": OpType.OP_2DUP,
 	"swap": OpType.OP_SWAP,
 	"over": OpType.OP_OVER,
-	"pop": OpType.OP_POP,
+	"drop": OpType.OP_DROP,
 	"mem": OpType.OP_MEM,
 	".": OpType.OP_STORE,
 	",": OpType.OP_LOAD,
@@ -456,31 +473,61 @@ TOKEN_WORDS = {
 	"syscall5": OpType.OP_SYSCALL5,
 	"syscall6": OpType.OP_SYSCALL6,
 	"prn": OpType.OP_PRINT_INT,
-	"exit": OpType.OP_EXIT
+	"exit": OpType.OP_EXIT,
 }
 
-def parse_word(word):
-    if word.lstrip('-').isdigit():
-        return Op(typ=OpType.OP_PUSH_INT, value=int(word))
-    elif word in TOKEN_WORDS:
-        return Op(typ=TOKEN_WORDS[word])
-    else:
-        raise ValueError(f"Unknown word '{word}'")
+def tokenize(lines: List[str]) -> List[Token]:
+	out = []
+	for line in lines:
+		line = line.split()
+		for word in line:
+			if word.isnumeric():
+				out.append(Token(TokenType.INT, int(word)))
+			elif word == '//':
+				break
+			else:
+				out.append(Token(TokenType.WORD, word))
+	return out
 
-def load_program(file_name):
-    program = []
-    with open(file_name, "r") as f:
-        for line_num, line in enumerate(f, start=1):
-            tokens = line.split()
-            if tokens:
-                for token in tokens:
-                    try:
-                        op = parse_word(token)
-                        program.append(op)
-                    except ValueError as e:
-                        raise ValueError(f"Line {line_num}: {e}")
-    return program
+def parse(tokens: List[Token]) -> Program:
+    out = []
+    macros = {}
+    i = 0
 
+    while i < len(tokens):
+        token = tokens[i]
+        if token.typ == TokenType.INT:
+            out.append(Op(OpType.OP_PUSH_INT, token.value))
+        elif token.typ == TokenType.WORD:
+            if token.value in TOKEN_WORDS:
+                op_type = TOKEN_WORDS[token.value]
+                if op_type == OpType.OP_MACRO:
+                    macro_name = tokens[i + 1].value
+                    i += 2
+                    macro_body = []
+                    while tokens[i].value != 'close':
+                        if tokens[i].typ == TokenType.INT:
+                            macro_body.append(Op(OpType.OP_PUSH_INT, tokens[i].value))
+                        elif tokens[i].typ == TokenType.WORD:
+                            if tokens[i].value in TOKEN_WORDS:
+                                macro_body.append(Op(TOKEN_WORDS[tokens[i].value]))
+                            else:
+                                raise ValueError(f"Unrecognized token in macro: {tokens[i].value}")
+                        i += 1
+                    macros[macro_name] = macro_body
+                else:
+                    out.append(Op(op_type))
+            else:
+                if token.value in macros:
+                    for op in macros[token.value]:
+                        out.append(op)
+                else:
+                    raise ValueError(f"Unrecognized word: {token.value}")
+        i += 1
+
+    processed_program = [op for op in out if op.typ != OpType.OP_MACRO and op.typ != OpType.OP_CLOSE]
+
+    return processed_program
 
 def usage():
 	print("Usage: %s <flag> <in> <out>\n")
@@ -491,6 +538,13 @@ def command(cmd):
 	print("[CMD] %s" % cmd)
 	subprocess.call(cmd)
 
+def main(src, out):
+    with open(src) as f:
+        lines = f.readlines()
+    tokens = tokenize(lines)
+    program = parse(tokens)
+    compile(program, out)
+
 if __name__ == '__main__':
 
 	flag = sys.argv[1]
@@ -498,8 +552,7 @@ if __name__ == '__main__':
 	out = sys.argv[3]	
 
 	if flag == "-c" or flag == "-r":
-		program = load_program(afl)
-		compile(program, f"{out}.s")
+		main(f"{afl}", f"{out}.s")
 		command(["nasm", "-felf64", "-o", f"{out}.o", f"{out}.s"])
 		command(["ld", "-o", f"{out}", f"{out}.o"])
 		if flag == "-r":
