@@ -1,121 +1,146 @@
 # Arctic Fox Lang
+
 A forth inspired lang :3
 ![image](https://github.com/LazyBev/arctic-fox-lang/assets/157259616/f273a926-66f9-41ad-b7a3-a27c021bb132)
+
 # Compiling and running an afl project
-python (compiler) (flag) (file).afl (out)
+e.g.
 
-# How to code in afl
-```(int)```: Pushes number to stack
+    
 
-```prn```: Pops and prints top of stack
+# How to Code in AFL
 
-```+```: Adds top two numbers on the stack
+Basic Operations
 
-```-```: Subtracts top two numbers on the stack
+    (int): Pushes number to stack
 
-```*```: Multiplies top two numbers on the stack
+    prn: Pops and prints top of stack
 
-```/```: Divides top two numbers on the stack
+Arithmetic Operations
 
-```%```: Divides top two numbers on the stack but returns remainer instead
+    +: Adds top two numbers on the stack
 
-```=```: Compares top two numbers on stack and checks if they are equal
+    -: Subtracts top two numbers on the stack
 
-```!=```: Compares top two numbers on stack and checks if they are not equal
+    *: Multiplies top two numbers on the stack
 
-```>```: Compares top two numbers on stack and checks if first val is greater than second val
+    /: Divides top two numbers on the stack
 
-```>=```: Compares top two numbers on stack and checks if first val is greater than or equal to second val
+    %: Divides top two numbers on the stack but returns remainder instead
 
-```!>```: Compares top two numbers on stack and checks if first val is not greater than second val
+Comparison Operations
 
-```<```: Compares top two numbers on stack and checks if first val is less than second val
+    =: Compares top two numbers on stack and checks if they are equal
 
-```<=```: Compares top two numbers on stack and checks if first val is less than or equal to second val
+    !=: Compares top two numbers on stack and checks if they are not equal
 
-```!<```: Compares top two numbers on stack and checks if first val is not less than second val
+    >: Compares top two numbers on stack and checks if first value is greater than second value
 
-```dup```: Duplicates top of stack
+    >=: Compares top two numbers on stack and checks if first value is greater than or equal to second value
 
-```2dup```: Duplicates top two number on stack
+    !>: Compares top two numbers on stack and checks if first value is not greater than second value
 
-```or```: Performs logical and on the top 2 numebrs on stack
+    <: Compares top two numbers on stack and checks if first value is less than second value
 
-```xor```: Performs logical xor on the top 2 numebrs on stack
+    <=: Compares top two numbers on stack and checks if first value is less than or equal to second value
 
-```and```: Performs logical or on the top 2 numebrs on stack
+    !<: Compares top two numbers on stack and checks if first value is not less than second value
 
-```swap```: Swaps top two numbers on the stack
+Stack Operations
 
-```over```: Pushes a copy of 2nd to top number to top
+    dup: Duplicates top of stack
 
-```pop```: Pops top of the stack
+    2dup: Duplicates top two numbers on stack
 
-``````mem`````````:``` ```Memory-r```elated operation
+    swap: Swaps top two numbers on the stack
 
-```.```: Stores a value to memory
+    over: Pushes a copy of 2nd to top number to top
 
-```,```: Loads a value to memory
+    drop: Pops top of the stack
 
-```syscallN (N = 1 to 6)```: Performs a linux syscall
+Logical Operations
+
+    or: Performs logical OR on the top 2 numbers on stack
+
+    xor: Performs logical XOR on the top 2 numbers on stack
+    
+    and: Performs logical AND on the top 2 numbers on stack
+
+Memory Operations
+
+    mem: Memory-related operation
+
+    .: Stores a value to memory
+
+    ,: Loads a value from memory
+
+System Calls
+
+    syscallN (N = 1 to 6): Performs a Linux syscall
+
+Extra:
+    //: Comment line
 
 Examples: 
 
-```60``` ```prn``` -> ```60```
+    60 prn // prints 60
 
-```20``` ```10``` ```-``` ```prn``` -> ```10```
+    20 10 - prn // prints 10
 
-```20``` ```10``` ```+``` ```prn``` -> ```30```
+    20 10 + prn // 30
 
-```20``` ```10``` ```*``` ```prn``` -> ```200```
+    20 10 * prn -> 200
 
-```20``` ```10``` ```/``` ```prn``` -> ```2```
+    20 10 / prn -> 2
 
-```20``` ```2``` ```%``` ```prn``` -> ```0```
+    20 2 % prn -> 0
 
-```2``` ```2``` ```=``` ```prn``` -> ```1```
+    2 2 = prn -> 1
 
-```2``` ```2``` ```!``` ```=``` ```prn``` -> ```0```
+    2 2 != prn -> 0
 
-```1``` ```2``` ```>``` ```prn``` -> ```0```
+    1 2 > prn -> 0
 
-```2``` ```2``` ```>=``` ```prn``` -> ```1```
+    2 2 >= prn -> 1
 
-```1``` ```2``` ```!>``` ```prn``` -> ```1```
+    1 2 !> prn -> 1
 
-```1``` ```2``` ```<``` ```prn``` -> ```1```
+    1 2 < prn -> 1
 
-```3``` ```2``` ```<=``` ```prn``` -> ```0```
+    3 2 <= prn -> 0
 
-```1``` ```2``` ```!<``` ```prn``` -> ```0```
+    1 2 !< prn -> 0
 
-```2``` ```dup``` ```+``` ```prn``` -> ```4```
+    2 dup + prn -> 4
 
-```2``` ```4``` ```2dup``` ```+``` ```prn``` -> ```6```
+    2 4 2dup + prn -> 6
 
-```1``` ```2``` ```or``` ```prn``` -> ```3```
+    1 2 or prn -> 3
 
-```1``` ```3``` ```xor``` ```prn``` -> ```2```
+    1 3 xor prn -> 2
 
-```3``` ```3``` ```and``` ```prn``` -> ```3```
+    3 3 and prn -> 3
 
-```1``` ```2``` ```swap``` ```prn``` -> ```1```
+    1 2 swap prn -> 1
 
-```4``` ```5``` ```over``` ```-``` ```prn``` -> ```1```
+    4 5 over - prn -> 1
 
-```5``` ```4``` ```pop``` ```prn``` -> ```5```
+    5 4 pop prn -> 5
 
-```mem``` ```0``` ```+``` ```97``` ```.``` -> (pushes ASCII) 'a'
+    mem 0 + 97 . -> (pushes ASCII) 'a'
 
-```1``` ```mem``` ```1``` ```1``` ```syscall3``` -> (prints) 'a'
+    1 mem 1 1 syscall3 -> (prints) 'a'
+
 
 ---------------------------------------------------------------------------------------------------------------------------
 
-```(condition) if (code to exec)```: Checks to see if comparison is true and executes some code
+If-Else Statements:
 
-```else (code to exec)```: If conditon is false executes some code
+    if: Checks to see if condition is true
 
-```end```:
+    else: If conditon is false
+
+    end: Ends an if statement
 
 Example:
 
@@ -123,39 +148,59 @@ Example:
 
         20 20 + 41 = if
     
-           50 prn
+           50 ```prn```
         
         else
     
-           70 prn
+           70 ```prn```
         
         end
     
     else
 
-        60 prn
+        60 ```prn```
     
     end
 
-```Result``` -> ```70```
+Result: `70`
 
 ---------------------------------------------------------------------------------------------------------------------------
 
-```while (condition)```: Checks the conditon
+While Loops
 
-```do (code to loop)```: Executes looped code
+    while: Starts a while loop
 
-```done```: Ends while statement (done)
+    do: Executes loop body
+
+    done: Ends a while loop
 
 Example:
 
     1 
     while dup 4 > do
     
-        dup ```prn```
+        dup prn
       
         1 +
       
     done
 
-```Result``` -> ```1 2 3```
+Result: 1 2 3
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Macros
+
+    macro: Starts a macro definition
+
+    close: Closes the macro definition
+
+Example:
+
+    macro lol
+        60 60 + prn
+    close
+
+    lol
+
+Result -> `120`
