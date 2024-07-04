@@ -38,7 +38,6 @@ class OpType(Enum):
 	OP_XOR = auto()
 	OP_AND = auto()
 	OP_DUP = auto()
-	OP_2DUP = auto()
 	OP_SWAP = auto()
 	OP_OVER = auto()
 	OP_DROP = auto()
@@ -84,6 +83,7 @@ def compile(program, out):
 		if_label_count = 0
 		while_label_count = 0
 		else_stack = []
+		wasElse = False
 		end_stack = []
 		while_stack = []
 		do_stack = []
@@ -159,9 +159,12 @@ def compile(program, out):
 				out.write("    jmp %s\n" % current_end_label)
 				out.write("    ; -- else --\n")
 				out.write("%s:\n" % current_else_label)
+				wasElse == True
 			elif op.typ == OpType.OP_END:
 				current_else_label = else_stack.pop()
 				current_end_label = end_stack.pop()
+				if wasElse == False:
+					out.write("%s:\n" % current_else_label)
 				out.write("    ; -- end --\n")
 				out.write("%s:\n" % current_end_label)
 			elif op.typ == OpType.OP_WHILE:
@@ -274,10 +277,12 @@ def compile(program, out):
 				out.write("    shl rbx, cl\n")
 				out.write("    push rbx\n")
 			elif op.typ == OpType.OP_NOT:
-				out.write("    ; -- not --\n")
+				out.write("    mov rcx, 1\n")
+				out.write("    mov rdx, 0\n")
 				out.write("    pop rax\n")
-				out.write("    not rax\n")
-				out.write("    push rax\n")
+				out.write("    cmp rax, 1\n")
+				out.write("    cmove rcx, rdx\n")
+				out.write("    push rcx\n")
 			elif op.typ == OpType.OP_OR:
 				out.write("    ; -- or --\n")
 				out.write("    pop rax\n")
@@ -300,14 +305,6 @@ def compile(program, out):
 				out.write("    ; -- duplicate top 1--\n")
 				out.write("    pop rax\n")
 				out.write("    push rax\n")
-				out.write("    push rax\n")
-			elif op.typ == OpType.OP_2DUP:
-				out.write("    ; -- duplicate top 2--\n")
-				out.write("    pop rax\n")
-				out.write("    pop rbx\n")
-				out.write("    push rbx\n")
-				out.write("    push rax\n")
-				out.write("    push rbx\n")
 				out.write("    push rax\n")
 			elif op.typ == OpType.OP_SWAP:
 				out.write("    ; -- swap --\n")
@@ -479,8 +476,6 @@ TOKEN_WORDS = {
 	"and": OpType.OP_AND,
 
 	"dup": OpType.OP_DUP,
-	"2dup": OpType.OP_2DUP,
-
 	"swap": OpType.OP_SWAP,
 	"over": OpType.OP_OVER,
 	"drop": OpType.OP_DROP,
@@ -508,7 +503,8 @@ def tokenize(lines: List[str], current_file: str = "") -> List[Token]:
 				out.append(Token(TokenType.INT, int(word)))
 			elif word.startswith(";"):
 				include_file = word[1:]
-				print(f"{include_file}")
+				print(f"Tokenizing {include_file}...")
+				print(f"Parsing {include_file}...")
 				if current_file:
 					include_file = os.path.join(os.path.dirname(current_file), include_file)
 				with open(include_file) as f:
@@ -517,7 +513,6 @@ def tokenize(lines: List[str], current_file: str = "") -> List[Token]:
 				out.extend(include_tokens)
 			elif word.startswith("\"") and word.endswith("\""):
 				word = word[1:-1]
-				word = word + "\n"
 				out.append(Token(TokenType.STR, str(word)))
 			elif word == '//':
 				break
@@ -552,15 +547,20 @@ def parse(tokens: List[Token]) -> Program:
                             if tokens[i].value in TOKEN_WORDS:
                                 macro_body.append(Op(TOKEN_WORDS[tokens[i].value]))
                             else:
-                                raise ValueError(f"Unrecognized token in macro: {tokens[i].value}")
+                                # Check if it's a macro
+                                if tokens[i].value in macros:
+                                    macro_body.extend(macros[tokens[i].value])
+                                else:
+                                    raise ValueError(f"Unrecognized token in macro: {tokens[i].value}")
                         i += 1
                     macros[macro_name] = macro_body
                 else:
                     out.append(Op(op_type))
             else:
                 if token.value in macros:
-                    for op in macros[token.value]:
-                        out.append(op)
+                    out.extend(macros[token.value])
+                else:
+                    raise ValueError(f"Unrecognized token: {token.value}")
         else:
             raise ValueError(f"Unrecognized word: {token.value}")
         i += 1
@@ -581,8 +581,11 @@ def command(cmd):
 def main(src, out):
     with open(src) as f:
         lines = f.readlines()
+    print(f"Tokenizing {afl}...")
     tokens = tokenize(lines, src)
+    print(f"Parsing {afl}...")
     program = parse(tokens)
+    print("----------------------------------------------------")
     compile(program, out)
 
 if __name__ == '__main__':
