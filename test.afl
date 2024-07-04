@@ -1,13 +1,4 @@
-macro abc
-    bit 0 + 97 store // a
-    bit 1 + 98 store // b
-    bit 2 + 99 store // c
-    bit 3 + 10 store // \n
-close
-
-macro write 
-    dup bit 1 1 syscall3
-close
+;core/std.afl
 
 20 10 - prn // 10
 
@@ -21,15 +12,15 @@ close
 
 20 20 + 40 = if
     20 20 + 41 = if
-        50 prn
+        true prn
     else
-        70 prn
+        2 prn
     end
 else
-    60 prn
-end // 70
+    false prn
+end // 2
 
-abc 4 write // 'abc'
+"abc" write
 
 1 while dup 4 > do
     dup prn
