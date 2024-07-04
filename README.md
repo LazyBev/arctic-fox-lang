@@ -68,7 +68,7 @@ Logical Operations
 
 Memory Operations
 
-    byte: Creates a byte in memeory
+    bit: Creates a bit in memeory
 
     store: Stores a value to memory
 
