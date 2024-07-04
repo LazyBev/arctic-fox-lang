@@ -275,3 +275,34 @@ Macros
         exit
 
 Result -> `120`
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Includes
+
+    ;: Includes a file
+
+    Example:
+        
+        In lol.afl:
+            
+            macro hi 
+            
+                "hi" 1 1 syscall3 
+                
+                drop 
+                
+            close
+
+        In main.afl:
+
+            ;core/std.afl
+
+            ;lol.afl
+
+            hi
+
+            exit
+
+Result -> `hi`
+
