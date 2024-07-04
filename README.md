@@ -197,7 +197,7 @@ Result -> `1 2 3`
 
 Macros
 
-    macro: Starts a macro definition
+    macro: Starts a macro definition (Can't use macros inside of macros)
 
     close: Closes the macro definition
 
