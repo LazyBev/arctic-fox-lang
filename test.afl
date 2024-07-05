@@ -1,4 +1,4 @@
-;core/std.afl
+;core/std.afl // Must have this file for it to work
 
 // macro write 1 1 syscall3 close
 
