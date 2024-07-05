@@ -1,3 +1,5 @@
+;core/std.afl
+
 bit 28 + 1 store
 
 0 while dup 28 > do
