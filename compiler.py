@@ -31,25 +31,32 @@ class OpType(Enum):
 	OP_LTE = auto()
 	OP_NEQ = auto()
 	OP_EQ = auto()
+	OP_LNOT = auto()
+
 	OP_SHR = auto()
 	OP_SHL = auto()
-	OP_NOT = auto()
-	OP_OR = auto()
-	OP_XOR = auto()
-	OP_AND = auto()
+
+	OP_BNOT = auto()
+	OP_BOR = auto()
+	OP_BXOR = auto()
+	OP_BAND = auto()
+
 	OP_DUP = auto()
 	OP_SWAP = auto()
 	OP_OVER = auto()
 	OP_DROP = auto()
+
 	OP_MEM = auto()
 	OP_STORE = auto()
 	OP_LOAD = auto()
+
 	OP_SYSCALL1 = auto()
 	OP_SYSCALL2 = auto()
 	OP_SYSCALL3 = auto()
 	OP_SYSCALL4 = auto()
 	OP_SYSCALL5 = auto()
 	OP_SYSCALL6 = auto()
+
 	OP_PRINT_INT = auto()
 
 @dataclass
@@ -141,6 +148,7 @@ def compile(program, out):
 				out.write("    div rbx\n")
 				out.write("    push rdx\n")
 			elif op.typ == OpType.OP_IF:
+				wasElse = False
 				if_label_count += 1
 				else_label = "addr_else_%d" % if_label_count
 				end_label = "addr_end_%d" % if_label_count
@@ -151,6 +159,7 @@ def compile(program, out):
 				out.write("    test rax, rax\n")
 				out.write("    jz %s\n" % else_label)
 			elif op.typ == OpType.OP_ELSE:
+				wasElse = True
 				current_else_label = else_stack.pop()
 				current_end_label = end_stack.pop()
 				end_label = "addr_end_%d" % if_label_count
@@ -159,7 +168,6 @@ def compile(program, out):
 				out.write("    jmp %s\n" % current_end_label)
 				out.write("    ; -- else --\n")
 				out.write("%s:\n" % current_else_label)
-				wasElse == True
 			elif op.typ == OpType.OP_END:
 				current_else_label = else_stack.pop()
 				current_end_label = end_stack.pop()
@@ -167,6 +175,7 @@ def compile(program, out):
 					out.write("%s:\n" % current_else_label)
 				out.write("    ; -- end --\n")
 				out.write("%s:\n" % current_end_label)
+				wasElse = False
 			elif op.typ == OpType.OP_WHILE:
 				while_label_count += 1
 				while_label = "addr_while_%d" % while_label_count
@@ -264,6 +273,11 @@ def compile(program, out):
 				out.write("    cmp rax, rbx\n")
 				out.write("    cmove rcx, rdx\n")
 				out.write("    push rcx\n")
+			elif op.typ == OpType.OP_LNOT:
+				out.write("    ; -- not --\n")
+				out.write("    pop rax\n")
+				out.write("    not rax\n")
+				out.write("    push rax\n")
 			elif op.typ == OpType.OP_SHR:
 				out.write("    ; -- shift to right --\n")
 				out.write("    pop rcx\n")
@@ -276,26 +290,26 @@ def compile(program, out):
 				out.write("    pop rbx\n")
 				out.write("    shl rbx, cl\n")
 				out.write("    push rbx\n")
-			elif op.typ == OpType.OP_NOT:
+			elif op.typ == OpType.OP_BNOT:
 				out.write("    mov rcx, 1\n")
 				out.write("    mov rdx, 0\n")
 				out.write("    pop rax\n")
 				out.write("    cmp rax, 1\n")
 				out.write("    cmove rcx, rdx\n")
 				out.write("    push rcx\n")
-			elif op.typ == OpType.OP_OR:
+			elif op.typ == OpType.OP_BOR:
 				out.write("    ; -- or --\n")
 				out.write("    pop rax\n")
 				out.write("    pop rbx\n")
 				out.write("    or rbx, rax\n")
 				out.write("    push rbx\n")
-			elif op.typ == OpType.OP_XOR:
+			elif op.typ == OpType.OP_BXOR:
 				out.write("    ; -- xor --\n")
 				out.write("    pop rax\n")
 				out.write("    pop rbx\n")
 				out.write("    xor rbx, rax\n")
 				out.write("    push rbx\n")
-			elif op.typ == OpType.OP_AND:
+			elif op.typ == OpType.OP_BAND:
 				out.write("    ; -- and --\n")
 				out.write("    pop rax\n")
 				out.write("    pop rbx\n")
@@ -464,16 +478,17 @@ TOKEN_WORDS = {
 	"<": OpType.OP_LT,
 	"<=": OpType.OP_LTE,
 	"!<": OpType.OP_NLT,
-	"!=": OpType.OP_NEQ,
 	"=": OpType.OP_EQ,
+	"!=": OpType.OP_NEQ,
+	"!": OpType.OP_LNOT,
 
 	"shr": OpType.OP_SHR,
 	"shl": OpType.OP_SHL,
 
-	"not": OpType.OP_NOT,
-	"or": OpType.OP_OR,
-	"xor": OpType.OP_XOR,
-	"and": OpType.OP_AND,
+	"not": OpType.OP_BNOT,
+	"or": OpType.OP_BOR,
+	"xor": OpType.OP_BXOR,
+	"and": OpType.OP_BAND,
 
 	"dup": OpType.OP_DUP,
 	"swap": OpType.OP_SWAP,
@@ -513,6 +528,7 @@ def tokenize(lines: List[str], current_file: str = "") -> List[Token]:
 				out.extend(include_tokens)
 			elif word.startswith("\"") and word.endswith("\""):
 				word = word[1:-1]
+				word += "\n"
 				out.append(Token(TokenType.STR, str(word)))
 			elif word == '//':
 				break
