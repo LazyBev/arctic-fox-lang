@@ -15,9 +15,9 @@ Standard lib:
 
     read: Reads a string
 
-    true 1: True
-    
-    false 0: False
+    true: Boolean true
+
+    false: Boolean false
     
     2dup: Duplicates top two numbers on stack
     
