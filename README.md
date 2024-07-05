@@ -13,6 +13,32 @@ Standard lib:
 
     write: Prints a string
 
+    read: Reads a string
+
+    true 1: True
+    
+    false 0: False
+    
+    2dup: Duplicates top two numbers on stack
+    
+    2drop: Drops top two numbers on stack
+    
+    stdin: Return code for standard input
+    
+    stdout: Return code for standard output
+    
+    stderr: Return code for standard error
+    
+    sys_read:  Syscall number for reading
+    
+    sys_write:  Syscall number for writing
+    
+    sys_open:  Syscall number for opening
+    
+    sys_close:  Syscall number for closing
+    
+    sys_exit:  Syscall number for exit
+
     exit: Exits with code 0
 
 Misc:
@@ -120,8 +146,6 @@ Comparison Operations
 Stack Operations
 
     dup: Duplicates top of stack
-
-    2dup: Duplicates top two numbers on stack
 
     swap: Swaps top two numbers on the stack
 
