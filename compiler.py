@@ -1,7 +1,5 @@
-import sys
-import os
+import sys, os, re, subprocess
 from enum import Enum, auto
-import subprocess
 from dataclasses import dataclass
 from typing import *
 
@@ -46,7 +44,7 @@ class OpType(Enum):
 	OP_OVER = auto()
 	OP_DROP = auto()
 
-	OP_MEM = auto()
+	OP_PTR = auto()
 	OP_STORE = auto()
 	OP_LOAD = auto()
 
@@ -336,7 +334,7 @@ def compile(program, out):
 			elif op.typ == OpType.OP_DROP:
 				out.write("    ; -- pop --\n")
 				out.write("    pop rax\n")
-			elif op.typ == OpType.OP_MEM:
+			elif op.typ == OpType.OP_PTR:
 				out.write("    ; -- mem --\n")
 				out.write("    push mem\n")
 			elif op.typ == OpType.OP_STORE:
@@ -495,7 +493,7 @@ TOKEN_WORDS = {
 	"over": OpType.OP_OVER,
 	"drop": OpType.OP_DROP,
 
-	"bit": OpType.OP_MEM,
+	"ptr": OpType.OP_PTR,
 	"store": OpType.OP_STORE,
 	"load": OpType.OP_LOAD,
 
@@ -511,9 +509,10 @@ TOKEN_WORDS = {
 
 def tokenize(lines: List[str], current_file: str = "") -> List[Token]:
 	out = []
+
 	for line in lines:
-		line = line.split()
-		for word in line:
+		words = line.split()
+		for word in words:
 			if word.isnumeric():
 				out.append(Token(TokenType.INT, int(word)))
 			elif word.startswith(";"):
@@ -526,9 +525,9 @@ def tokenize(lines: List[str], current_file: str = "") -> List[Token]:
 					include_lines = f.readlines()
 				include_tokens = tokenize(include_lines, include_file)
 				out.extend(include_tokens)
-			elif word.startswith("\"") and word.endswith("\""):
+			elif word.startswith("\""):
 				word = word[1:-1]
-				word += "\n"
+				print(f"{word}")
 				out.append(Token(TokenType.STR, str(word)))
 			elif word == '//':
 				break
