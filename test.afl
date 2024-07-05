@@ -1,5 +1,7 @@
 ;core/std.afl
 
+// macro write 1 1 syscall3 close
+
 20 10 - prn // 10
 
 20 10 + prn // 30
@@ -20,7 +22,7 @@ else
     false prn
 end // 2
 
-"abc" write
+"abc" stdout write
 
 1 while dup 4 > do
     dup prn
