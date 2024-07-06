@@ -1,6 +1,4 @@
-;core/std.afl // Must have this file for it to work
-
-// macro write 1 1 syscall3 close
+include "core/std.tau" // Must have this file for it to work
 
 20 10 - prn // 10
 
@@ -22,11 +20,12 @@ else
     false prn
 end // 2
 
-"abc" stdout write
+"abc" stdout write drop
 
 1 while dup 4 > do
     dup prn
     1 +
-done // 1 2 3
+end // 1 2 3
 
-exit
+drop drop drop
+0 exit
