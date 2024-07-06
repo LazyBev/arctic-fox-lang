@@ -15,8 +15,8 @@ import traceback
 TAU_EXT = '.tau'
 DEFAULT_EXPANSION_LIMIT=1000
 EXPANSION_DIAGNOSTIC_LIMIT=10
-MEM_CAP  = 640_000 # should be enough for everyone
-SIM_NULL_POINTER_PADDING = 1 # just a little bit of a padding at the beginning of the memory to make 0 an invalid address
+MEM_CAP  = 640_000
+SIM_NULL_POINTER_PADDING = 1
 SIM_STR_CAPACITY  = 640_000
 SIM_ARGV_CAPACITY = 640_000
 
