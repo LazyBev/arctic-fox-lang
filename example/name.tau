@@ -1,0 +1,13 @@
+include "core/std.tau"
+
+macro name bit end
+macro NAME_CAP 100 end
+
+"What is your name?: " stdout write drop
+
+NAME_CAP name stdin read drop
+
+"Hello, " stdout write
+name stdout write drop
+
+0 exit
