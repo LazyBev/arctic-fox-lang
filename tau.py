@@ -15,8 +15,8 @@ import traceback
 TAU_EXT = '.tau'
 DEFAULT_EXPANSION_LIMIT=1000
 EXPANSION_DIAGNOSTIC_LIMIT=10
-MEM_CAP  = 640_000
-SIM_NULL_POINTER_PADDING = 1
+MEM_CAP  = 640_000 
+SIM_NULL_POINTER_PADDING = 1 
 SIM_STR_CAPACITY  = 640_000
 SIM_ARGV_CAPACITY = 640_000
 
@@ -500,7 +500,7 @@ def type_check_program(program: Program):
             elif op.operand == Intrinsic.HERE:
                 stack.append((DataType.INT, op.token))
                 stack.append((DataType.PTR, op.token))
-            # TODO: figure out how to type check syscall arguments and return types
+            
             elif op.operand == Intrinsic.SYSCALL0:
                 if len(stack) < 1:
                     not_enough_arguments(op)
@@ -1191,8 +1191,6 @@ def find_col(line: str, start: int, predicate: Callable[[str], bool]) -> int:
     return start
 
 def unescape_string(s: str) -> str:
-    # NOTE: unicode_escape assumes latin-1 encoding, so we kinda have
-    # to do this weird round trip
     return s.encode('utf-8').decode('unicode_escape').encode('latin-1').decode('utf-8')
 
 def find_string_literal_end(line: str, start: int) -> int:
@@ -1212,7 +1210,7 @@ def lex_lines(file_path: str, lines: List[str]) -> Generator[Token, None, None]:
     while row < len(lines):
         line = lines[row]
         col = find_col(line, 0, lambda x: not x.isspace())
-        col_end = 0
+        col_end = 0 
         while col < len(line):
             loc = (file_path, row + 1, col + 1)
             if line[col] == '"':
@@ -1385,8 +1383,6 @@ if __name__ == '__main__' and '__file__' in globals():
                 basename = basename[:-len(TAU_EXT)]
             basedir = path.dirname(program_path)
 
-        # if basedir is empty we should "fix" the path appending the current working directory.
-        # So we avoid `com -r` to run command from $PATH.
         if basedir == "":
             basedir = os.getcwd()
         basepath = path.join(basedir, basename)
