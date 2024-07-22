@@ -631,37 +631,37 @@ def compile(program: Program, out_file_path: str):
             out.write("addr_%d:\n" % ip)
             if op.typ == OpType.PUSH_INT:
                 assert isinstance(op.operand, int), "This could be a bug in the compilation step"
-                out.write("     -- push int %d --\n" % op.operand)
+                out.write("    ;-- push int %d --\n" % op.operand)
                 out.write("    mov rax, %d\n" % op.operand)
                 out.write("    push rax\n")
             elif op.typ == OpType.PUSH_STR:
                 assert isinstance(op.operand, str), "This could be a bug in the compilation step"
                 value = op.operand.encode('utf-8')
                 n = len(value)
-                out.write("     -- push str --\n")
+                out.write("    ;-- push str --\n")
                 out.write("    mov rax, %d\n" % n)
                 out.write("    push rax\n")
                 out.write("    push str_%d\n" % len(strs))
                 strs.append(value)
             elif op.typ == OpType.IF:
-                out.write("     -- if --\n")
+                out.write("    ;-- if --\n")
                 out.write("    pop rax\n")
                 out.write("    test rax, rax\n")
                 assert isinstance(op.operand, int), "This could be a bug in the compilation step"
                 out.write("    jz addr_%d\n" % op.operand)
             elif op.typ == OpType.ELSE:
-                out.write("     -- else --\n")
+                out.write("    ;-- else --\n")
                 assert isinstance(op.operand, int), "This could be a bug in the compilation step"
                 out.write("    jmp addr_%d\n" % op.operand)
             elif op.typ == OpType.END:
                 assert isinstance(op.operand, int), "This could be a bug in the compilation step"
-                out.write("     -- end --\n")
+                out.write("    ;-- end --\n")
                 if ip + 1 != op.operand:
                     out.write("    jmp addr_%d\n" % op.operand)
             elif op.typ == OpType.WHILE:
-                out.write("     -- while --\n")
+                out.write("    ;-- while --\n")
             elif op.typ == OpType.DO:
-                out.write("     -- do --\n")
+                out.write("    ;-- do --\n")
                 out.write("    pop rax\n")
                 out.write("    test rax, rax\n")
                 assert isinstance(op.operand, int), "This could be a bug in the compilation step"
@@ -669,25 +669,25 @@ def compile(program: Program, out_file_path: str):
             elif op.typ == OpType.INTRINSIC:
                 assert len(Intrinsic) == 41, "Exhaustive intrinsic handling in compile()"
                 if op.operand == Intrinsic.PLUS:
-                    out.write("     -- plus --\n")
+                    out.write("    ;-- plus --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rbx\n")
                     out.write("    add rax, rbx\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.MINUS:
-                    out.write("     -- minus --\n")
+                    out.write("    ;-- minus --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rbx\n")
                     out.write("    sub rbx, rax\n")
                     out.write("    push rbx\n")
                 elif op.operand == Intrinsic.MUL:
-                    out.write("     -- mul --\n")
+                    out.write("    ;-- mul --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rbx\n")
                     out.write("    mul rbx\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.DIVMOD:
-                    out.write("     -- mod --\n")
+                    out.write("    ;-- mod --\n")
                     out.write("    xor rdx, rdx\n")
                     out.write("    pop rbx\n")
                     out.write("    pop rax\n")
@@ -695,40 +695,40 @@ def compile(program: Program, out_file_path: str):
                     out.write("    push rax\n")
                     out.write("    push rdx\n")
                 elif op.operand == Intrinsic.SHR:
-                    out.write("     -- shr --\n")
+                    out.write("    ;-- shr --\n")
                     out.write("    pop rcx\n")
                     out.write("    pop rbx\n")
                     out.write("    shr rbx, cl\n")
                     out.write("    push rbx\n")
                 elif op.operand == Intrinsic.SHL:
-                    out.write("     -- shl --\n")
+                    out.write("    ;-- shl --\n")
                     out.write("    pop rcx\n")
                     out.write("    pop rbx\n")
                     out.write("    shl rbx, cl\n")
                     out.write("    push rbx\n")
                 elif op.operand == Intrinsic.OR:
-                    out.write("     -- bor --\n")
+                    out.write("    ;-- bor --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rbx\n")
                     out.write("    or rbx, rax\n")
                     out.write("    push rbx\n")
                 elif op.operand == Intrinsic.AND:
-                    out.write("     -- band --\n")
+                    out.write("    ;-- band --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rbx\n")
                     out.write("    and rbx, rax\n")
                     out.write("    push rbx\n")
                 elif op.operand == Intrinsic.NOT:
-                    out.write("     -- not --\n")
+                    out.write("    ;-- not --\n")
                     out.write("    pop rax\n")
                     out.write("    not rax\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.PRINT:
-                    out.write("     -- print --\n")
+                    out.write("    ;-- print --\n")
                     out.write("    pop rdi\n")
                     out.write("    call print\n")
                 elif op.operand == Intrinsic.EQ:
-                    out.write("     -- equal --\n")
+                    out.write("    ;-- equal --\n")
                     out.write("    mov rcx, 0\n")
                     out.write("    mov rdx, 1\n")
                     out.write("    pop rax\n")
@@ -737,7 +737,7 @@ def compile(program: Program, out_file_path: str):
                     out.write("    cmove rcx, rdx\n")
                     out.write("    push rcx\n")
                 elif op.operand == Intrinsic.GT:
-                    out.write("     -- gt --\n")
+                    out.write("    ;-- gt --\n")
                     out.write("    mov rcx, 0\n")
                     out.write("    mov rdx, 1\n")
                     out.write("    pop rbx\n")
@@ -746,7 +746,7 @@ def compile(program: Program, out_file_path: str):
                     out.write("    cmovg rcx, rdx\n")
                     out.write("    push rcx\n")
                 elif op.operand == Intrinsic.LT:
-                    out.write("     -- gt --\n")
+                    out.write("    ;-- gt --\n")
                     out.write("    mov rcx, 0\n")
                     out.write("    mov rdx, 1\n")
                     out.write("    pop rbx\n")
@@ -755,7 +755,7 @@ def compile(program: Program, out_file_path: str):
                     out.write("    cmovl rcx, rdx\n")
                     out.write("    push rcx\n")
                 elif op.operand == Intrinsic.GE:
-                    out.write("     -- gt --\n")
+                    out.write("    ;-- gt --\n")
                     out.write("    mov rcx, 0\n")
                     out.write("    mov rdx, 1\n")
                     out.write("    pop rbx\n")
@@ -764,7 +764,7 @@ def compile(program: Program, out_file_path: str):
                     out.write("    cmovge rcx, rdx\n")
                     out.write("    push rcx\n")
                 elif op.operand == Intrinsic.LE:
-                    out.write("     -- gt --\n")
+                    out.write("    ;-- gt --\n")
                     out.write("    mov rcx, 0\n")
                     out.write("    mov rdx, 1\n")
                     out.write("    pop rbx\n")
@@ -773,7 +773,7 @@ def compile(program: Program, out_file_path: str):
                     out.write("    cmovle rcx, rdx\n")
                     out.write("    push rcx\n")
                 elif op.operand == Intrinsic.NE:
-                    out.write("     -- ne --\n")
+                    out.write("    ;-- ne --\n")
                     out.write("    mov rcx, 0\n")
                     out.write("    mov rdx, 1\n")
                     out.write("    pop rbx\n")
@@ -782,28 +782,28 @@ def compile(program: Program, out_file_path: str):
                     out.write("    cmovne rcx, rdx\n")
                     out.write("    push rcx\n")
                 elif op.operand == Intrinsic.DUP:
-                    out.write("     -- dup --\n")
+                    out.write("    ;-- dup --\n")
                     out.write("    pop rax\n")
                     out.write("    push rax\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.SWAP:
-                    out.write("     -- swap --\n")
+                    out.write("    ;-- swap --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rbx\n")
                     out.write("    push rax\n")
                     out.write("    push rbx\n")
                 elif op.operand == Intrinsic.DROP:
-                    out.write("     -- drop --\n")
+                    out.write("    ;-- drop --\n")
                     out.write("    pop rax\n")
                 elif op.operand == Intrinsic.OVER:
-                    out.write("     -- over --\n")
+                    out.write("    ;-- over --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rbx\n")
                     out.write("    push rbx\n")
                     out.write("    push rax\n")
                     out.write("    push rbx\n")
                 elif op.operand == Intrinsic.ROT:
-                    out.write("     -- rot --\n")
+                    out.write("    ;-- rot --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rbx\n")
                     out.write("    pop rcx\n")
@@ -811,70 +811,70 @@ def compile(program: Program, out_file_path: str):
                     out.write("    push rax\n")
                     out.write("    push rcx\n")
                 elif op.operand == Intrinsic.MEM:
-                    out.write("     -- bit --\n")
+                    out.write("    ;-- bit --\n")
                     out.write("    push bit\n")
                 elif op.operand == Intrinsic.LOAD:
-                    out.write("     -- load --\n")
+                    out.write("    ;-- load --\n")
                     out.write("    pop rax\n")
                     out.write("    xor rbx, rbx\n")
                     out.write("    mov bl, [rax]\n")
                     out.write("    push rbx\n")
                 elif op.operand == Intrinsic.STORE:
-                    out.write("     -- store --\n")
+                    out.write("    ;-- store --\n")
                     out.write("    pop rbx\n")
                     out.write("    pop rax\n")
                     out.write("    mov [rax], bl\n")
                 elif op.operand == Intrinsic.ARGC:
-                    out.write("     -- argc --\n")
+                    out.write("    ;-- argc --\n")
                     out.write("    mov rax, [args_ptr]\n")
                     out.write("    mov rax, [rax]\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.ARGV:
-                    out.write("     -- argv --\n")
+                    out.write("    ;-- argv --\n")
                     out.write("    mov rax, [args_ptr]\n")
                     out.write("    add rax, 8\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.HERE:
                     value = ("%s:%d:%d" % op.token.loc).encode('utf-8')
                     n = len(value)
-                    out.write("     -- here --\n")
+                    out.write("    ;-- here --\n")
                     out.write("    mov rax, %d\n" % n)
                     out.write("    push rax\n")
                     out.write("    push str_%d\n" % len(strs))
                     strs.append(value)
                 elif op.operand == Intrinsic.LOAD64:
-                    out.write("     -- load --\n")
+                    out.write("    ;-- load --\n")
                     out.write("    pop rax\n")
                     out.write("    xor rbx, rbx\n")
                     out.write("    mov rbx, [rax]\n")
                     out.write("    push rbx\n")
                 elif op.operand == Intrinsic.STORE64:
-                    out.write("     -- store --\n")
+                    out.write("    ;-- store --\n")
                     out.write("    pop rbx\n")
                     out.write("    pop rax\n")
                     out.write("    mov [rax], rbx\n")
                 elif op.operand == Intrinsic.CAST_PTR:
-                    out.write("     -- cast(ptr) --\n")
+                    out.write("    ;-- cast(ptr) --\n")
                 elif op.operand == Intrinsic.SYSCALL0:
-                    out.write("     -- syscall0 --\n")
+                    out.write("    ;-- syscall0 --\n")
                     out.write("    pop rax\n")
                     out.write("    syscall\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.SYSCALL1:
-                    out.write("     -- syscall1 --\n")
+                    out.write("    ;-- syscall1 --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rdi\n")
                     out.write("    syscall\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.SYSCALL2:
-                    out.write("     -- syscall2 --\n")
+                    out.write("    ;-- syscall2 --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rdi\n")
                     out.write("    pop rsi\n")
                     out.write("    syscall\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.SYSCALL3:
-                    out.write("     -- syscall3 --\n")
+                    out.write("    ;-- syscall3 --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rdi\n")
                     out.write("    pop rsi\n")
@@ -882,7 +882,7 @@ def compile(program: Program, out_file_path: str):
                     out.write("    syscall\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.SYSCALL4:
-                    out.write("     -- syscall4 --\n")
+                    out.write("    ;-- syscall4 --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rdi\n")
                     out.write("    pop rsi\n")
@@ -891,7 +891,7 @@ def compile(program: Program, out_file_path: str):
                     out.write("    syscall\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.SYSCALL5:
-                    out.write("     -- syscall5 --\n")
+                    out.write("    ;-- syscall5 --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rdi\n")
                     out.write("    pop rsi\n")
@@ -901,7 +901,7 @@ def compile(program: Program, out_file_path: str):
                     out.write("    syscall\n")
                     out.write("    push rax\n")
                 elif op.operand == Intrinsic.SYSCALL6:
-                    out.write("     -- syscall6 --\n")
+                    out.write("    ;-- syscall6 --\n")
                     out.write("    pop rax\n")
                     out.write("    pop rdi\n")
                     out.write("    pop rsi\n")
