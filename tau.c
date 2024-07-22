@@ -105,14 +105,18 @@ void generate_asm(Token *token, FILE *out) {
                 fprintf(out, "    push rdx\n");
             }
             break;
-
         case 2: // keyword
             if (strcmp(token->value, "if") == 0) {
                 fprintf(out, "    ;-- if --\n");
                 fprintf(out, "    pop rax\n");
                 fprintf(out, "    test rax, rax\n");
                 fprintf(out, "    jz addr_end_%d\n", i);
-            } else if (strcmp(token->value, "else") == 0) {
+            } else if (strcmp(token->value, "ifel") == 0) {
+                fprintf(out, "    ;-- if-else --\n");
+                fprintf(out, "    pop rax\n");
+                fprintf(out, "    test rax, rax\n");
+                fprintf(out, "    jz addr_else_%d\n", i);
+            } else if (strcmp(token->value, ":") == 0) {
                 fprintf(out, "    jmp addr_end_%d\n", i);
                 fprintf(out, "    ;-- else --\n");
                 fprintf(out, "addr_else_%d:\n", i);
@@ -120,14 +124,15 @@ void generate_asm(Token *token, FILE *out) {
                 fprintf(out, "    ;-- end --\n");
                 fprintf(out, "addr_end_%d:\n", i);
                 ++i;
-            } else if (strcmp(token->value, "while") == 0) {
-                fprintf(out, "     ;-- while --\n");
-            } else if (strcmp(token->value, "do") == 0) {
-                fprintf(out, "     ;-- do --\n");
-                fprintf(out, "    pop rax\n");
-                fprintf(out, "    test rax, rax\n");
-                fprintf(out, "    jz addr_while_%d\n", i);
-                ++i;
+            // } else if (strcmp(token->value, "while") == 0) {
+            //     fprintf(out, "    ;-- while --\n");
+            //     fprintf(out, "addr_while_%d:\n", i);
+            // } else if (strcmp(token->value, "do") == 0) {
+            //     fprintf(out, "    ;-- do --\n");
+            //     fprintf(out, "    pop rax\n");
+            //     fprintf(out, "    test rax, rax\n");
+            //     fprintf(out, "    jz addr_while_%d\n", i);
+            //     ++i;
             } else if (strcmp(token->value, "shr") == 0) {
                 fprintf(out, "    ;-- shr --\n");
                 fprintf(out, "    pop rcx\n");
